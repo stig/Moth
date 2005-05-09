@@ -153,10 +153,6 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 #else
 				board = ggtl_alphabeta_iterative(game, ply);
 #endif
-				if (board) {
-					printf("searched to ply %d\n",
-						ggtl_get(game, GGTL_PLY_LAST));
-				}
 			}
 		}
 	} 
