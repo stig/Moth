@@ -81,9 +81,22 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+
+int getline(char *s, int size)
+{
+	char fmt[50];
+	int ret;
+	snprintf(fmt, sizeof fmt, "%%%d[^\n]%%*[^\n]", size);
+	*s = '\0';
+	ret = scanf(fmt, s);
+	getchar();
+	return ret;
+}
+	
+
 void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
-	char move[10] = {0};
+	char move[128] = {0};
 	const void *board;
 	bool show = true;
 	int c, score, maxply, player;
@@ -108,8 +121,8 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
 		printf("Chose action (00-77|ENTER|undo|eval|save|load): ");
 		fflush(stdout);
-		move[0] = '\0';
-		scanf("%9[^\n]%*[^\n]", move); getchar();
+		getline(move, sizeof move);
+
 
 		if (!strncmp(move, "undo", 4)) {
 			show = true;
@@ -123,24 +136,26 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
                         show = false;
                 }
 		else if (!strncmp(move, "save", 4)) {
-			puts("attempting to save game...");
-			if (ggtl_write_to_file(game, "moth_savegame"))
+			printf("Saving game, need a name: "); fflush(stdout);
+			getline(move, sizeof move);
+			if (ggtl_write_to_file(game, move))
 				puts("success");
-			else puts("failure");
+			else puts("failed");
 			show = false;
 		}
 		else if (!strncmp(move, "load", 4)) {
 			struct ggtl *tmp;
-			puts("attempting to load game...");
+			printf("Loading game, need a name: "); fflush(stdout);
+			getline(move, sizeof move);
 			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-			if (tmp && ggtl_read_from_file(tmp, "moth_savegame")) {
-				puts("success");
+			if (move[0] && tmp && ggtl_read_from_file(tmp, move)) {
+				printf("stored current state in `%s'.", move);
 				ggtl_free(game);
 				game = tmp;
 				show = true;
 			}
 			else {
-				puts("failed");
+				printf("failed loading game from `%s'.", move);
 				ggtl_free(tmp);
 				show = false;
 			}
