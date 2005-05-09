@@ -111,6 +111,7 @@ static void mymouse(int button, int state, int x, int y)
                           x / (width / 8), 
                           7 - y / (height / 8)
                         );
+                        ggtl_move(game, mv);
 		}
 			
 		if (button == GLUT_RIGHT_BUTTON) {
