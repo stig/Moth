@@ -113,12 +113,21 @@ nodeptr find_moves(const void *boarddata, nodeptr *availmoves, int me)
 				tmp = sll_pop(availmoves); 
 				assert(tmp != NULL); 
 				mv = sll_peek(tmp); 
+				assert(mv != NULL);
 				mv[0] = i + '0'; 
 				mv[1] = j + '0'; 
 				sll_push(&movelist, tmp); 
 			}
 		}
 	}
+
+	if (!movelist) {
+		tmp = sll_pop(availmoves);
+		mv = sll_peek(tmp);
+		mv[0] = mv[1] = -1 + '0';
+		sll_push(&movelist, tmp);
+	}
+
 	return movelist;
 }
 
@@ -144,10 +153,11 @@ bool make_move(void *boarddata, const void *movedata, int me)
 	const char *move = movedata;
 	int x, y;
 	
-	assert(move != NULL);
-
 	x = move[0] - '0';
 	y = move[1] - '0';
+
+	if (x == -1 && y == -1) 
+		return true;
 	return valid_move(board, x, y, me, true);
 }
 
