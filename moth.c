@@ -12,7 +12,7 @@ int evaluate(const void *boarddata, int me);
 
 static bool valid_move(char *board, int x, int y, int me, bool domove);
 void display(const void *boarddata);
-void mainloop(struct ggtl *game, int ply1, int ply2, bool interactive);
+void mainloop(struct ggtl *game, int ply1, int ply2);
 static int count_pieces(const void *boarddata, int me);
 
 #define a(A, B, C) A[(B) * 8 + (C)]
@@ -41,8 +41,12 @@ int main(int argc, char **argv)
 	board[3][4] = board[4][3] = 1;
 	board[3][3] = board[4][4] = 2;
 
-	game = ggtl_init_default(board, sizeof board, 2);
-	ggtl_callbacks(game, end_of_game, find_moves, make_move, evaluate);
+	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
+	if (!game || !ggtl_init(game, board, sizeof board, 2)) {
+		ggtl_free(game);
+		puts("sorry -- NO GAME FOR YOU!");
+		return EXIT_FAILURE;
+	}
 
 	if (argc > 1) {
 		ply1 = atoi(argv[1]);
@@ -51,18 +55,18 @@ int main(int argc, char **argv)
 		ply2 = atoi(argv[2]);
 	}
 
-	mainloop(game, ply1, ply2, false);
+	mainloop(game, ply1, ply2);
 	ggtl_free(game);
 
 	return 0;
 }
 
-void mainloop(struct ggtl *game, int ply1, int ply2, bool interactive)
+void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[10] = {0};
 	const void *board;
 	bool show = true;
-	int tmp, maxply, player;
+	int c, score, maxply, player;
 
 	for (;;) {
                 board = ggtl_current_state(game);
@@ -81,15 +85,11 @@ void mainloop(struct ggtl *game, int ply1, int ply2, bool interactive)
 			maxply = ply2;
 		}
 
-		printf("\nplayer %d (%c),\n", player, player==1?'-':'#');
-		
-		if (interactive) {
-			printf("Chose action (00-77 / ENTER / undo / eval): ");
-			fflush(stdout);
-			scanf("%9[^\n]%*[^\n]", move); getchar();
-			move[0] -= '0';
-			move[1] -= '0';
-		}
+		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
+		printf("Chose action (00-77|ENTER|undo|eval|save|load): ");
+		fflush(stdout);
+		move[0] = '\0';
+		scanf("%9[^\n]%*[^\n]", move); getchar();
 
 		if (!strncmp(move, "undo", 4)) {
 			show = true;
@@ -102,25 +102,52 @@ void mainloop(struct ggtl *game, int ply1, int ply2, bool interactive)
                         printf("minimax value: %d\n\n", ggtl_rate_last(game, maxply));
                         show = false;
                 }
-                else if (ggtl_make_move(game, move)) {
-                        show = true;
-                }
-		else {
-			if (ggtl_alphabeta(game, maxply))
+		else if (!strncmp(move, "save", 4)) {
+			puts("attempting to save game...");
+			if (ggtl_write_to_file(game, "moth_savegame"))
+				puts("success");
+			else puts("failure");
+			show = false;
+		}
+		else if (!strncmp(move, "load", 4)) {
+			struct ggtl *tmp;
+			puts("attempting to load game...");
+			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
+			if (tmp && ggtl_read_from_file(tmp, "moth_savegame")) {
+				puts("success");
+				ggtl_free(game);
+				game = tmp;
 				show = true;
-			else 
+			}
+			else {
+				puts("failed");
+				ggtl_free(game);
 				show = false;
+			}
+		}
+                else {
+			move[0] -= '0';
+			move[1] -= '0';
+			if (ggtl_make_move(game, move)) {
+				show = true;
+			}
+			else {
+				if (ggtl_alphabeta_iterative(game, maxply))
+					show = true;
+				else 
+					show = false;
+			}
 		}
 	}
 
-	tmp = count_pieces(board, 1);
-	tmp -= count_pieces(board, 2);
+	score = count_pieces(board, 1);
+	score -= count_pieces(board, 2);
 
-	if (tmp > 0) {
-		printf("Player 1 won, with a margin of %d\n\n", tmp);
+	if (score > 0) {
+		printf("Player 1 won, with a margin of %d\n\n", score);
 	}
-	else if (tmp < 0) {
-		printf("Player 2 won, with a margin of %d\n\n", -tmp);
+	else if (score < 0) {
+		printf("Player 2 won, with a margin of %d\n\n", -score);
 	}
 	else {
 		puts("The game ended in a draw\n\n");
@@ -155,28 +182,27 @@ int evaluate(const void *boarddata, int me)
 {
 	const char *board = boarddata;
 	int not_me = 3 - me;
-	int i, j, c, score = 0;
+	int myscore = 0, notmyscore = 0;
 
-#if 1
+#if 0
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			c = a(board, i, j);
 			if (c == me) {
-				score += heuristic[i][j];
-				score++;
+				myscore += heuristic[i][j];
 			}
 			else if (c == not_me) {
-				score -= heuristic[i][j];
-				score++;
+				notmyscore += heuristic[i][j];
 			}
 		}
 	}
 #else
-	score = count_pieces(board, me);
-	score -= count_pieces(board, not_me);
+	myscore = count_pieces(board, me);
+	notmyscore = count_pieces(board, not_me);
 #endif
-	
-	return score;
+	if (!myscore) return GGTL_FITNESS_MIN;
+	if (!notmyscore) return GGTL_FITNESS_MAX;
+	return (myscore - notmyscore) * 2;
 }
 
 
