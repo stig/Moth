@@ -29,7 +29,7 @@
 /* 
  * Draw a game position on screen.
  */
-static void display(const struct ggtl_state *b)
+static void display(const struct ggtl_pos *b)
 {
 	int i, j, c;
 
@@ -76,7 +76,7 @@ static int getline(char *s, size_t size)
 static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
-	const struct ggtl_state *board;
+	const struct ggtl_pos *board;
 	int score;
 
 	board = ggtl_peek_state(game);
@@ -186,7 +186,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 int main(int argc, char **argv)
 {
 	struct ggtl *game;
-	struct ggtl_state initial = {{{0}}, 1};
+	struct ggtl_pos initial = {{{0}}, 1};
 	int ply1 = 1, ply2 = 1;
 
 	initial.b[3][4] = initial.b[4][3] = 1;

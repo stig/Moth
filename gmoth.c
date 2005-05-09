@@ -162,7 +162,7 @@ static void drawgrid(int width, int height)
  * Draw a state; wizz through an array and draw discs in the correct
  * colour when needed.
  */
-static void drawstate(const struct ggtl_state *board, int width, int height)
+static void drawstate(const struct ggtl_pos *board, int width, int height)
 {
 	int i, j, c;
 	int x_step = width / 8;
@@ -182,7 +182,7 @@ static void drawstate(const struct ggtl_state *board, int width, int height)
 }
 
 
-static void gameover(const struct ggtl_state *board)
+static void gameover(const struct ggtl_pos *board)
 {
 	int score;
 
@@ -205,7 +205,7 @@ static void gameover(const struct ggtl_state *board)
 
 static void mydisplay(void)
 {
-	const struct ggtl_state *board = ggtl_peek_state(game);
+	const struct ggtl_pos *board = ggtl_peek_state(game);
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
 
@@ -239,7 +239,7 @@ static void mydisplay(void)
 
 int main(int argc, char **argv)
 {
-	struct ggtl_state board = {{{0}}, 1};
+	struct ggtl_pos board = {{{0}}, 1};
 
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);

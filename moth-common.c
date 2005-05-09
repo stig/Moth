@@ -58,7 +58,7 @@ void greeting(void)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int evaluate(const struct ggtl_state *b)
+int evaluate(const struct ggtl_pos *b)
 {
 	int c, i, j;
 	int me = b->player;
@@ -91,7 +91,7 @@ int evaluate(const struct ggtl_state *b)
  * Find and add possible moves at this position to GGTL's internal
  * lists.
  */
-void find_moves(struct ggtl *game, const struct ggtl_state *b)
+void find_moves(struct ggtl *game, const struct ggtl_pos *b)
 {
 	struct ggtl_move mv;
 	int me = b->player;
@@ -121,7 +121,7 @@ void find_moves(struct ggtl *game, const struct ggtl_state *b)
  * Return zero if the game has _not_ ended at this position (for the
  * current player), and non-zero if it has.
  */
-int end_of_game(const struct ggtl_state *b)
+int end_of_game(const struct ggtl_pos *b)
 {
 	int i, j;
 	int me = b->player;
@@ -140,7 +140,7 @@ int end_of_game(const struct ggtl_state *b)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int make_move(struct ggtl_state *b, const struct ggtl_move *m)
+int make_move(struct ggtl_pos *b, const struct ggtl_move *m)
 {
 	int me = b->player;
 	int not_me = 3 - me;
@@ -290,7 +290,7 @@ int make_move(struct ggtl_state *b, const struct ggtl_move *m)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int valid_move(const struct ggtl_state *b, int x, int y, int me)
+int valid_move(const struct ggtl_pos *b, int x, int y, int me)
 {
 	int tx, ty;
 	int not_me = 3 - me;
@@ -371,7 +371,7 @@ int valid_move(const struct ggtl_state *b, int x, int y, int me)
 /* 
  * Count the number of pieces on the board for the given player
  */
-int count_pieces(const struct ggtl_state *b, int me)
+int count_pieces(const struct ggtl_pos *b, int me)
 {
 	int i, j, count = 0;
 
