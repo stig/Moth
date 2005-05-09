@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
 void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
-	char move[100] = {0};
+	char move[10] = {0};
 	const void *board;
 	bool show = true;
 	int tmp, maxply, player;
@@ -83,9 +83,9 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 		printf("\nplayer %d (%c),\n", player, player==1?'-':'#');
 
 #if 1
-		fputs("Chose action (00-77 / ENTER / undo / eval): ", stdout);
+		printf("Chose action (00-77 / ENTER / undo / eval): ");
 		fflush(stdout);
-		fgets(move, sizeof move, stdin);
+		scanf("%9[^\n]%*[^\n]", move); getchar();
 #endif
 		if (!strncmp(move, "undo", 4)) {
 			show = true;
@@ -95,7 +95,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
                         }
                 }
                 else if (!strncmp(move, "eval", 4)) {
-                        printf("minimax value: %d\n\n", evaluate(board, 1));
+                        printf("minimax value: %d\n\n", ggtl_rate_last(game, maxply));
                         show = false;
                 }
                 else if (ggtl_make_move(game, move)) {
