@@ -19,7 +19,6 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include "moth/moth-common.h"
 #include "config-options.h"
 
@@ -382,20 +381,5 @@ int count_pieces(const void *boarddata, int me)
 		}
 	}
 	return count;
-}
-
-
-/* 
- * Get a line of input
- */
-int getline(char *s, int size)
-{
-	char fmt[50];
-	int ret;
-	snprintf(fmt, sizeof fmt, "%%%d[^\n]%%*[^\n]", size);
-	*s = '\0';
-	ret = scanf(fmt, s);
-	getchar();
-	return ret;
 }
 

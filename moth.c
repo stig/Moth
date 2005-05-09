@@ -54,6 +54,21 @@ static void display(const void *boarddata)
 
 
 /* 
+ * Get a line of input
+ */
+static int getline(char *s, size_t size)
+{
+	char fmt[50];
+	int ret;
+	sprintf(fmt, "%%%lu[^\n]%%*[^\n]", size);
+	*s = '\0';
+	ret = scanf(fmt, s);
+	getchar();
+	return ret;
+}
+
+
+/* 
  * This function actually plays the game.
  */
 static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)

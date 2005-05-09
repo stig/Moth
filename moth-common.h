@@ -82,12 +82,6 @@ int valid_move(const char *board, int x, int y, int me);
 int count_pieces(const void *boarddata, int me);
 
 
-/* 
- * Get a line of input
- */
-int getline(char *s, int size);
-
-
 /* end prototype section */
 
 #ifdef __cplusplus

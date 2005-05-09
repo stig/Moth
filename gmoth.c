@@ -69,7 +69,7 @@ static void mykeyboard(unsigned char key, int x, int y)
 			
 		case 'u':
 		case 'U':
-			ggtl_undo(game);
+			(void)ggtl_undo(game);
 			break;
 
 		case 'q': 
@@ -100,11 +100,11 @@ static void mymouse(int button, int state, int x, int y)
 
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
-			ggtl_move(game, move);
+			(void)ggtl_move(game, move);
 		}
 			
 		if (button == GLUT_RIGHT_BUTTON) {
-			ggtl_alphabeta_iterative(game);
+			(void)ggtl_alphabeta_iterative(game);
 		}
 	}
 
@@ -118,16 +118,16 @@ static void mymouse(int button, int state, int x, int y)
 static void drawdisc(int x1, int y1, int x2, int y2, float col)
 {
 	int i;
-	float rx = (x2 - x1) / 2.0;
-	float ry = (y2 - y1) / 2.0;
-	float x = x1 + rx;
-	float y = y1 + ry;
+	int rx = (x2 - x1) / 2;
+	int ry = (y2 - y1) / 2;
+	int x = x1 + rx;
+	int y = y1 + ry;
 
 	glColor3f(col, col, col);
 	glBegin(GL_POLYGON);
 	for (i = 0; i < 360; i++) {
-		float xt = x + rx * cos(i / 57.0);
-		float xy = y + ry * sin(i / 57.0);
+		GLfloat xt = x + rx * cos(i / 57.0);
+		GLfloat xy = y + ry * sin(i / 57.0);
 		glVertex2f(xt, xy);
 	}
 	glEnd();
@@ -140,16 +140,16 @@ static void drawdisc(int x1, int y1, int x2, int y2, float col)
 static void drawgrid(int width, int height)
 {
 	int i;
-	int x_step = width / 8;
-	int y_step = height / 8;
+	GLfloat x_step = width / 8.0;
+	GLfloat y_step = height / 8.0;
 
 	glColor3f(1.0, 1.0, 1.0);
 	glBegin(GL_LINES);
 	for (i = 0; i < 9; i++) {
-		glVertex2f(0, y_step * i);
-		glVertex2f(width, y_step * i);
-		glVertex2f(x_step * i, 0);
-		glVertex2f(x_step * i, height);
+		glVertex2f(0.0, y_step * i);
+		glVertex2f((GLfloat)width, y_step * i);
+		glVertex2f(x_step * i, 0.0);
+		glVertex2f(x_step * i, (GLfloat)height);
 	}
 	glEnd();
 }
@@ -205,14 +205,14 @@ static void mydisplay(void)
 	const char *board = ggtl_peek_state(game);
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
-	int i, player;
+	int player;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	glClearColor(0.0, 0.0, 1.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	gluOrtho2D(0, width, 0, height);
+	gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
 	if (end_of_game(board, 1) && end_of_game(board, 2)) {
 		gameover(board);
@@ -244,6 +244,10 @@ int main(int argc, char **argv)
         glutInitWindowSize(XRES, YRES);
         glutCreateWindow("gMoth");
 
+        glutKeyboardFunc(mykeyboard);
+        glutDisplayFunc(mydisplay);
+        glutMouseFunc(mymouse);
+
 	greeting();
 
 	board[3][4] = board[4][3] = 1;
@@ -255,16 +259,15 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	/* difficulty level for player 1 */
 	if (argc > 1) {
 		ply1 = atoi(argv[1]);
 	}
+
+	/* difficulty level for player 2 */
 	if (argc > 2) {
 		ply2 = atoi(argv[2]);
 	}
-
-        glutKeyboardFunc(mykeyboard);
-        glutDisplayFunc(mydisplay);
-        glutMouseFunc(mymouse);
 
         glutMainLoop();
 	return 0;
