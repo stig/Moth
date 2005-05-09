@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(ggtl-games, 1.2pre1, stig@brautaset.org)
+AC_INIT(ggtl-games, 1.2.0, stig@brautaset.org)
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
