@@ -4,9 +4,11 @@ EXECUTABLE = moth
 SOURCES = moth.c
 OBJS = moth.o
 
-CFLAGS = -W -Wall -O -ansi -pedantic
+CFLAGS = -W -Wall -O2 -ansi -pedantic
 LDFLAGS = -lggtl
-LINK = $(CC) $(LDFLAGS)
+
+COMPILE = $(CC) $(CFLAGS)
+LINK = $(COMPILE) $(LDFLAGS)
 
 all: $(EXECUTABLE)
 
@@ -14,7 +16,7 @@ $(EXECUTABLE): $(OBJS)
 	$(LINK) $(OBJS) -o $(EXECUTABLE) 
 
 %.o : %.c
-	$(CC) -c $< 
+	$(COMPILE) -c $< 
 
 
 clean:
