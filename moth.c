@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "ggtl/ggtl.h"
-#include "config-include/config-options.h"
+#include "config-options.h"
 
 
 /* prototype for callbacks */
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 {
 	struct ggtl *game;
 	char board[8][8] = {{0}};
-	int ply1 = 3, ply2 = 3;
+	int ply1 = 30, ply2 = 30;
 
 	board[3][4] = board[4][3] = 1;
 	board[3][3] = board[4][4] = 2;
@@ -128,10 +128,10 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 
 		player = ggtl_get(game, GGTL_PLAYER_TURN); 
 		if (player == 1) {
-			ggtl_set(game, GGTL_PLY_LIM, ply1);
+			ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
 		}
 		else {
-			ggtl_set(game, GGTL_PLY_LIM, ply2);
+			ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
 		}
 
 		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
@@ -179,7 +179,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			board = ggtl_move(game, move);
 			
 			if (!board) {
-				board = ggtl_alphabeta(game);
+				board = ggtl_alphabeta_iterative(game);
 			}
 		}
 	} 
