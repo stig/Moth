@@ -12,7 +12,7 @@ AC_CONFIG_SRCDIR([src/moth.c])
 AC_CONFIG_HEADER([config/config.h])
 
 AC_ARG_WITH(glut,
-  AS_HELP_STRING([--without-glut], [do not use glut (default is to use it if present)]),
+  AS_HELP_STRING([--without-glut], [do not use glut (default is to use it)]),
   [ac_use_glut=$withval],
   [ac_use_glut=yes])
 AM_CONDITIONAL(WITH_GLUT, test x$ac_use_glut = xyes)
