@@ -35,17 +35,7 @@ AC_CHECK_LIB(glut, glutInit)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h string.h])
-AC_CHECK_HEADERS([options/opt.h], [], [ AC_MSG_ERROR([
-  Fatal error -- the options header file is missing.
-  options is available at http://brautaset.org/projects/options/ 
-  ])
-])
-AC_CHECK_HEADERS([ggtl/ggtl.h], [], [ AC_MSG_ERROR([
-  Fatal error -- the GGTL header file is missing.
-  GGTL is available at http://brautaset.org/projects/ggtl/ 
-  ])
-])
+AC_CHECK_HEADERS([stdlib.h string.h ggtl/core.h options/opt.h sl/sl.h])
 
 
 # Checks for typedefs, structures, and compiler characteristics.

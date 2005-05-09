@@ -11,7 +11,7 @@ void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *le
 	struct opt_defs options[] = {
 		{"help", "h", 0, "0",	"Print a short help message and exit"},
 		{"longhelp", "H", 0, "0","Print help with default values and exit"},
-		{"debug", "d", 0, "0",	"Print debug level messages"},
+		{"debug", "d", 1, "-2",	"Print debug level messages"},
 		{"fixed", "f", 0, "0",	"Fixed-depth search (turn off iterative deepening)"},
 		{"level1", "1", 1, "3",	"Depth of search (times 10ms for iterative deepening) -- player 1"},
 		{"level2", "2", 1, "3",	"Depth of search (times 10ms for iterative deepening) -- player 2"},

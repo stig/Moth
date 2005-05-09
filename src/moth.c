@@ -21,36 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "libmoth.h"
 
-
-/* 
- * Draw a game position on screen.
- */
-static void display(struct ggtl_pos *b)
-{
-	int i, j, c;
-
-	printf("\n   ");
-	for (i = 0; i < 8; i++)
-		printf(" %d  ", i);
-	puts("\n  +---+---+---+---+---+---+---+---+");
-
-	for (i = 0; i < 8; i++) {
-		printf("%d |", i);
-		for (j = 0; j < 8; j++) {
-			c = b->b[i][j];
-			if (c == 1)
-				printf(" - |");
-			else if (c == 2) 
-				printf(" X |");
-			else 
-				printf("   |");
-		}
-		puts("\n  +---+---+---+---+---+---+---+---+");
-
-	}
-}
+#include <ggtl/reversi.h>
 
 
 /* 
@@ -74,17 +46,15 @@ static int getline(char *s, size_t size)
 static struct ggtl *mainloop(struct ggtl *game, int fixed, int ply1, int ply2)
 {	
 	char move[128] = {0};
-	struct ggtl_pos *board;
+	struct reversi_state *board;
 	int score, ply;
 
-	board = ggtl_peek_pos(game);
 	for (;;) {
+		board = ggtl_peek_state(game);
 		if (board) {
-			display(board);
+			reversi_state_draw(board);
 		}
-
-		board = ggtl_peek_pos(game);
-		if (end_of_game(board)) {
+		if (ggtl_game_over(game)) {
 			break;
 		}
 		printf("\nplayer %d (%c)\n", board->player, board->player==1?'-':'X');
@@ -102,22 +72,17 @@ static struct ggtl *mainloop(struct ggtl *game, int fixed, int ply1, int ply2)
                                 puts("Error: no move to undo\n");
                         }
                 }
+#if 0
                 else if (!strncmp(move, "rate", 4)) {
 			int ply = ggtl_get(game, GGTL_PLY_LAST);
                         printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
                         board = NULL;
                 }
+#endif
                 else if (!strncmp(move, "redisp", 6)) {
-                        board = ggtl_peek_pos(game);
+                        board = ggtl_peek_state(game);
                 }
-		else if (!strncmp(move, "save", 4)) {
-			printf("Saving game, need a name: "); fflush(stdout);
-			getline(move, sizeof move);
-			if (!save(move, game))
-				puts("success");
-			else puts("failed");
-			board = NULL;
-		}
+#if 0
 		else if (!strncmp(move, "load", 4)) {
 			struct ggtl *tmp;
 			printf("Loading game, need a name: "); fflush(stdout);
@@ -126,35 +91,26 @@ static struct ggtl *mainloop(struct ggtl *game, int fixed, int ply1, int ply2)
 				printf("loaded game from `%s'.", move);
 				ggtl_free(game);
 				game = tmp;
-				board = ggtl_peek_pos(game);
+				board = ggtl_peek_state(game);
 			}
 			else {
 				printf("failed loading game from `%s'.", move);
 				board = NULL;
 			}
 		}
+#endif
                 else {
-			struct ggtl_move *mv;
-
-			mv = ggtl_pop_move(game);
-			if (!mv) 
-				mv = ensure_move();
-
-			mv->next = NULL;
-			mv->x = move[1] - '0';
-			mv->y = move[0] - '0';
+			struct reversi_move *mv;
+			mv = reversi_move_new(move[1]-'0', move[0]-'0');
 			board = ggtl_move(game, mv);
 			
 			if (!board) {
-				ggtl_push_move(game, mv);
-				if (fixed)
-					board = ggtl_alphabeta(game, ply);
-				else 
-					board = ggtl_alphabeta_iterative(game, ply);
+                                ggtl_ai_move(game);
 			}
 		}
 	} 
 
+#if 0
 	score = count_pieces(board, 1);
 	score -= count_pieces(board, 2);
 
@@ -167,6 +123,7 @@ static struct ggtl *mainloop(struct ggtl *game, int fixed, int ply1, int ply2)
 	else {
 		puts("The game ended in a draw\n\n");
 	}
+#endif
 	return game;
 }
 
@@ -174,23 +131,19 @@ static struct ggtl *mainloop(struct ggtl *game, int fixed, int ply1, int ply2)
 int main(int argc, char **argv)
 {
 	struct ggtl *game;
-	struct ggtl_pos *pos, start = {NULL, {{0}}, 1};
+	struct reversi_state *pos;
 	int debug, fixed, level1, level2;
 
-	greeting();
 	getopts(argc, argv, &debug, &fixed, &level1, &level2);
 
-	start.b[3][4] = start.b[4][3] = 1;
-	start.b[3][3] = start.b[4][4] = 2;
+        pos = reversi_state_new(8);
 
-	pos = copy_pos(NULL, &start);
-	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	if (!ggtl_init(game, pos)) {
-		ggtl_free(game);
+	game = reversi_init(ggtl_new(), pos);
+	if (!game) {
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
 	}
-	ggtl_set(game, GGTL_DEBUG, debug);
+	ggtl_ai_trace(game, debug);
 
 	game = mainloop(game, fixed, level1, level2);
 	ggtl_free(game);

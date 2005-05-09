@@ -1,7 +1,7 @@
 /* config/config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the <ggtl/ggtl.h> header file. */
-#undef HAVE_GGTL_GGTL_H
+/* Define to 1 if you have the <ggtl/core.h> header file. */
+#undef HAVE_GGTL_CORE_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -20,6 +20,9 @@
 
 /* Define to 1 if you have the <options/opt.h> header file. */
 #undef HAVE_OPTIONS_OPT_H
+
+/* Define to 1 if you have the <sl/sl.h> header file. */
+#undef HAVE_SL_SL_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
