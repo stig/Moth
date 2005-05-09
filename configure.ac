@@ -15,21 +15,21 @@ AC_CONFIG_HEADER([config/config.h])
 AC_PROG_CC
 
 # Check for libraries.
-AC_CHECK_LIB(options, opt_val, [], [ AC_MSG_ERROR([
+AC_CHECK_LIB(options, opt_val, , [ AC_MSG_ERROR([
   Fatal error -- the options library is missing.
-  options is available at http://brautaset.org/projects/options/
+  options is available at http://dev.brautaset.org/options/
   ])
 ])
-AC_CHECK_LIB(ggtl, ggtl_new, [], [ AC_MSG_ERROR([
+AC_CHECK_LIB(ggtl, ggtl_new, , [ AC_MSG_ERROR([
   Fatal error -- the GGTL library is missing.
-  GGTL is available at http://brautaset.org/projects/ggtl/
+  GGTL is available at http://dev.brautaset.org/ggtl/
   ])
 ])
 AC_CHECK_LIB(glut, glutInit)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h string.h ggtl/core.h options/opt.h sl/sl.h])
+AC_CHECK_HEADERS([ggtl/core.h options/opt.h sl/sl.h])
 AC_CHECK_HEADERS([GL/glut.h GLUT/glut.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
