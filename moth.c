@@ -177,8 +177,8 @@ int  find_moves(struct ggtl *game, void *boarddata, int me)
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			if (valid_move(board, i, j, me, false)) {
-				mv[0] = i + '0'; 
-				mv[1] = j + '0'; 
+				mv[0] = i; 
+				mv[1] = j; 
 				ggtl_add_move(game, mv);
 				cnt++;
 			}
@@ -186,7 +186,7 @@ int  find_moves(struct ggtl *game, void *boarddata, int me)
 	}
 
 	if (!cnt) {
-		mv[0] = mv[1] = -1 + '0';
+		mv[0] = mv[1] = -1;
 		ggtl_add_move(game, mv);
 		cnt++;
 	}
@@ -214,10 +214,8 @@ bool make_move(void *boarddata, void *movedata, int me)
 {
 	char *board = boarddata;
 	const char *move = movedata;
-	int x, y;
-
-	x = move[0] - '0';
-	y = move[1] - '0';
+	int x = move[0];
+	int y = move[1];
 
 	if (x == -1 && y == -1) 
 		return true;
