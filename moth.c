@@ -1,5 +1,5 @@
 /* 
- * moth -- an Othello game for console
+ * moth -- an Othello game (console version)
  * Copyright (C) 2003 Stig Brautaset, Dimitris Parapadakis and the
  * University of Westminster, London, UK.
  *
@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "ggtl/ggtl.h"
 #include "moth/moth-common.h"
 
 

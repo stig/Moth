@@ -1,5 +1,5 @@
 /* 
- * moth -- an Othello game for console
+ * gmoth -- an Othello game (gui version)
  * Copyright (C) 2003 Stig Brautaset, Dimitris Parapadakis and the
  * University of Westminster, London, UK.
  *
@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
-#include "ggtl/ggtl.h"
 #include "moth/moth-common.h"
 
 #define XRES 400

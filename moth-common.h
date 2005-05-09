@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+#include "ggtl/ggtl.h"
 
 /*
  * Used to simulate multi-dimensional array for a one-dimensional one

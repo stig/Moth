@@ -18,12 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <time.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include "ggtl/ggtl.h"
 #include "moth/moth-common.h"
 #include "config-options.h"
 
