@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "ggtl/ggtl.h"
+#include "config-include/config-options.h"
+
 
 /* prototype for callbacks */
 bool end_of_game(const void *boarddata, int me);
@@ -39,6 +41,16 @@ const int heuristic[8][8] = {	{9, 2, 7, 8, 8, 7, 2, 9},
 				{9, 2, 7, 8, 8, 7, 2, 9} 
 };
 
+
+void greeting(void)
+{
+	puts("This is moth, an othello game for console.");
+	puts("Copyright (C) 2003 Stig Brautaset.");
+	puts("This is free software; see the source for details.\n");
+	printf("Report bugs to <%s>.\n\n", cfg__moth_bug_email);
+}
+
+
 int main(int argc, char **argv)
 {
 	struct ggtl *game;
@@ -47,6 +59,8 @@ int main(int argc, char **argv)
 
 	board[3][4] = board[4][3] = 1;
 	board[3][3] = board[4][4] = 2;
+
+	greeting();
 
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
 	if (!game || !ggtl_init(game, board, sizeof board, 2)) {
