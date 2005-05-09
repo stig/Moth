@@ -44,8 +44,9 @@ const int heuristic[8][8] = {	{9, 2, 7, 8, 8, 7, 2, 9},
  */
 void greeting(void)
 {
-	puts("This is moth, an othello game for console.");
-	puts("Copyright (C) 2003 Stig Brautaset.");
+	puts("This is moth, yet another othello game.");
+	puts("Copyright (C) 2003 Stig Brautaset, Dimitris Parapadakis &");
+	puts("the University of Westminster, London, UK.");
 	puts("This is free software; see the source for details.\n");
 	printf("Report bugs to <%s>.\n\n", cfg__moth_bug_email);
 }

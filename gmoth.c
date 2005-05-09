@@ -117,9 +117,9 @@ static void mymouse(int button, int state, int x, int y)
 
 
 /*
- * Draw a disc in the quadrant (and with the colour) specified
+ * Draw a disc in the quadrant specified
  */
-static void drawdisc(int x1, int y1, int x2, int y2, float col)
+static void drawdisc(int x1, int y1, int x2, int y2)
 {
 	int i;
 	int rx = (x2 - x1) / 2;
@@ -127,7 +127,6 @@ static void drawdisc(int x1, int y1, int x2, int y2, float col)
 	int x = x1 + rx;
 	int y = y1 + ry;
 
-	glColor3f(col, col, col);
 	glBegin(GL_POLYGON);
 	for (i = 0; i < 360; i++) {
 		GLfloat xt = x + rx * cos(i / 57.0);
@@ -172,11 +171,11 @@ static void drawstate(const char *board, int width, int height)
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			c = a(board, i, j);
-			if (c == 1) {
-				drawdisc(x_step * i, y_step * j, x_step * (i+1), y_step * (j+1), 1.0);
-			}
-			else if (c == 2) {
-				drawdisc(x_step * i, y_step * j, x_step * (i+1), y_step * (j+1), 0.0);
+			if (c) {
+				if (c == 1) glColor3f(1.0, 1.0, 1.0);
+				else glColor3f(0.0, 0.0, 0.0);
+
+				drawdisc(x_step * i, y_step * j, x_step * (i+1), y_step * (j+1));
 			}
 		}
 	}

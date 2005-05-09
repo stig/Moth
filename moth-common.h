@@ -21,10 +21,6 @@
 #ifndef MOTH__MOTH_COMMON_H
 #define MOTH__MOTH_COMMON_H 1
 
-#ifdef __cplusplus	/* let C++ coders use this library */
-extern "C" {
-#endif
-
 #include "ggtl/ggtl.h"
 
 /*
@@ -84,7 +80,4 @@ int count_pieces(const void *boarddata, int me);
 
 /* end prototype section */
 
-#ifdef __cplusplus
-}
 #endif
-#endif /* GGTL__GGTL_H */
