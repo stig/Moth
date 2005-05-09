@@ -3,10 +3,10 @@
 #include <ggtl.h>
 
 /* prototype for callbacks */
-bool end_of_game(const void *boarddata, int me);
-nodeptr find_moves(const void *boarddata, nodeptr *availmoves, int me);
-bool make_move(void *boarddata, const void *movedata, int me);
-int evaluate(const void *boarddata, int me);
+bool end_of_game(void *boarddata, int me);
+nodeptr find_moves(void *boarddata, nodeptr *availmoves, int me);
+bool make_move(void *boarddata, void *movedata, int me);
+int evaluate(void *boarddata, int me);
 
 static bool valid_move(char *board, int x, int y, int me, bool domove);
 void display(const void *boarddata);
@@ -72,7 +72,7 @@ void display(const void *boarddata)
 
 void mainloop(struct ggtl *game)
 {	
-	const void *board;
+	void *board;
 	int tmp;
 
 	do {
@@ -99,7 +99,7 @@ void mainloop(struct ggtl *game)
 	}
 }
 
-int evaluate(const void *boarddata, int me)
+int evaluate(void *boarddata, int me)
 {
 	const char *board = boarddata;
 	int not_me = 3 - me;
@@ -122,10 +122,10 @@ int evaluate(const void *boarddata, int me)
 }
 
 
-nodeptr find_moves(const void *boarddata, nodeptr *availmoves, int me)
+nodeptr find_moves(void *boarddata, nodeptr *availmoves, int me)
 {
 	nodeptr tmp, movelist = NULL;
-	const char *board = boarddata;
+	char *board = boarddata;
 	char *mv, i, j;
 	
 	for (i = 0; i < 8; i++) {
@@ -152,9 +152,9 @@ nodeptr find_moves(const void *boarddata, nodeptr *availmoves, int me)
 	return movelist;
 }
 
-bool end_of_game(const void *boarddata, int me)
+bool end_of_game(void *boarddata, int me)
 {
-	const char *board = boarddata;
+	char *board = boarddata;
 	int i, j, not_me = 3 - me;
 
 	for (i = 0; i < 8; i++) {
@@ -168,7 +168,7 @@ bool end_of_game(const void *boarddata, int me)
 	return true;
 }
 
-bool make_move(void *boarddata, const void *movedata, int me)
+bool make_move(void *boarddata, void *movedata, int me)
 {
 	char *board = boarddata;
 	const char *move = movedata;
