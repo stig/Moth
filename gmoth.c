@@ -95,7 +95,8 @@ static void mymouse(int button, int state, int x, int y)
 {
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
-	int ply;
+	struct ggtl_pos *pos = ggtl_peek_pos(game);
+	int ply = pos->player == 1 ? ply1 : ply2;
 
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
