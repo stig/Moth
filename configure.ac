@@ -20,12 +20,17 @@ AC_CHECK_LIB(options, opt_val, , [ AC_MSG_ERROR([
   options is available at http://dev.brautaset.org/options/
   ])
 ])
+
 AC_CHECK_LIB(ggtl, ggtl_new, , [ AC_MSG_ERROR([
   Fatal error -- the GGTL library is missing.
   GGTL is available at http://dev.brautaset.org/ggtl/
   ])
 ])
-AC_CHECK_LIB(glut, glutInit)
+
+AC_CHECK_LIB(glut, glutMainLoop)
+
+# HACK HACK HACK: checking for GLUT on Darwin
+AC_CHECK_LIB([objc -framework GLUT -framework OpenGL], glutMainLoop)
 
 # Checks for header files.
 AC_HEADER_STDC

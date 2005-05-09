@@ -18,6 +18,10 @@
 /* Define to 1 if you have the `glut' library (-lglut). */
 #undef HAVE_LIBGLUT
 
+/* Define to 1 if you have the `objc -framework GLUT -framework OpenGL'
+   library (-lobjc -framework GLUT -framework OpenGL). */
+#undef HAVE_LIBOBJC__FRAMEWORK_GLUT__FRAMEWORK_OPENGL
+
 /* Define to 1 if you have the `options' library (-loptions). */
 #undef HAVE_LIBOPTIONS
 
