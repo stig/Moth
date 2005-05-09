@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
 	ggtl_memoptions(game, true, true, 2, 10);
-	if (!game || !ggtl_init(game, board, sizeof board, 2)) {
+	if (!ggtl_init(game, board, sizeof board, 2)) {
 		ggtl_free(game);
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
@@ -99,18 +99,19 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
 	const void *board;
-	bool show = true;
 	int score, maxply, player;
 
+	board = ggtl_peek_state(game);
 	for (;;) {
-                board = ggtl_current_state(game);
-                if (show == true) {
-                        display(board);
-                }
+		if (board) {
+			display(board);
+		}
 
-		if (end_of_game(board, 1) || end_of_game(board, 2))
+		board = ggtl_peek_state(game);
+		if (end_of_game(board, 1) && end_of_game(board, 2)) {
 			break;
-		
+		}
+
 		player = ggtl_player_turn(game); 
 		if (player == 1) {
 			maxply = ply1;
@@ -124,57 +125,50 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 		fflush(stdout);
 		getline(move, sizeof move);
 
-
 		if (!strncmp(move, "undo", 4)) {
-			show = true;
-                        if (!ggtl_undo_move(game)) {
+			board = ggtl_undo_move(game);
+                        if (!board) {
                                 puts("Error: no move to undo\n");
-                                show = false;
                         }
                 }
                 else if (!strncmp(move, "rate", 4)) {
                         printf("minimax value: %d\n\n", ggtl_rate_last(game, maxply));
-                        show = false;
+                        board = NULL;
                 }
 		else if (!strncmp(move, "save", 4)) {
 			printf("Saving game, need a name: "); fflush(stdout);
 			getline(move, sizeof move);
-			if (ggtl_write_to_file(game, move))
+			if (ggtl_save(game, move))
 				puts("success");
 			else puts("failed");
-			show = false;
+			board = NULL;
 		}
 		else if (!strncmp(move, "load", 4)) {
 			struct ggtl *tmp;
 			printf("Loading game, need a name: "); fflush(stdout);
 			getline(move, sizeof move);
 			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-			if (move[0] && tmp && ggtl_read_from_file(tmp, move)) {
+			if (move[0] && tmp && (board = ggtl_resume(tmp, move))) {
 				printf("stored current state in `%s'.", move);
 				ggtl_free(game);
 				game = tmp;
-				show = true;
 			}
 			else {
 				printf("failed loading game from `%s'.", move);
 				ggtl_free(tmp);
-				show = false;
+				board = NULL;
 			}
 		}
                 else {
 			move[0] -= '0';
 			move[1] -= '0';
-			if (ggtl_make_move(game, move)) {
-				show = true;
-			}
-			else {
-				if (ggtl_alphabeta_iterative(game, maxply))
-					show = true;
-				else 
-					show = false;
+			board = ggtl_make_move(game, move);
+			
+			if (!board) {
+				board = ggtl_alphabeta_iterative(game, maxply);
 			}
 		}
-	}
+	} 
 
 	score = count_pieces(board, 1);
 	score -= count_pieces(board, 2);
@@ -239,7 +233,7 @@ int evaluate(const void *boarddata, int me)
 #endif
 	if (!myscore) return GGTL_MIN;
 	if (!notmyscore) return GGTL_MAX;
-	return (myscore - notmyscore) * 2;
+	return myscore - notmyscore;
 }
 
 
