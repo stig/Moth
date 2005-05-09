@@ -1,5 +1,5 @@
 /* 
- * moth -- an Othello game for console
+ * Connect4 -- the classic game
  * Copyright (C) 2003 Stig Brautaset, Dimitris Parapadakis and the
  * University of Westminster, London, UK.
  *
@@ -18,76 +18,53 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
-#include "ggtl/ggtl.h"
-#include "moth/moth-common.h"
-#include "config-options.h"
+#include "libc4.h"
 
 
 
 /* 
- * Draw a game position on screen.
+ * Get a line of input
  */
-void display(const void *boarddata)
+static int getline(char *s, size_t size)
 {
-	const char *board = boarddata;
-	int i, j, c;
-
-	printf("\n   ");
-	for (i = 0; i < 8; i++)
-		printf(" %d  ", i);
-	puts("\n  +---+---+---+---+---+---+---+---+");
-
-	for (i = 0; i < 8; i++) {
-		printf("%d |", i);
-		for (j = 0; j < 8; j++) {
-			c = a(board, i, j);
-			if (c != 0)
-				printf(" %c |", c==1?'-':'#');
-			else 
-				printf("   |");
-		}
-		puts("\n  +---+---+---+---+---+---+---+---+");
-
-	}
+	char fmt[50];
+	int ret;
+	sprintf(fmt, "%%%lu[^\n]%%*[^\n]", size);
+	*s = '\0';
+	ret = scanf(fmt, s);
+	(void)getchar();
+	return ret;
 }
 
 
 /* 
  * This function actually plays the game.
  */
-struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
+static struct ggtl *mainloop(struct ggtl *game, int fixed, int ply1, int ply2)
 {	
 	char move[128] = {0};
-	const void *board;
-	int score, player;
+	struct ggtl_pos *board;
+	int ply;
 
-	board = ggtl_peek_state(game);
+	board = ggtl_peek_pos(game);
 	for (;;) {
 		if (board) {
 			display(board);
 		}
 
-		board = ggtl_peek_state(game);
-		if (end_of_game(board, 1) && end_of_game(board, 2)) {
+		board = ggtl_peek_pos(game);
+		if (end_of_game(board)) {
 			break;
 		}
+		printf("\nplayer %d (%c)\n", board->player, board->player==1?'-':'X');
+		puts("Action (0-6|ENTER|undo|rate|redisp|save|load)?");
 
-		player = ggtl_get(game, GGTL_PLAYER_TURN); 
-		if (player == 1) {
-			ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
-		}
-		else {
-			ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
-		}
+		if (board) 
+			ply = board->player == 1 ? ply1 : ply2;
 
-		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
-		printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
-		fflush(stdout);
 		getline(move, sizeof move);
 
 		if (!strncmp(move, "undo", 4)) {
@@ -97,16 +74,16 @@ struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
                         }
                 }
                 else if (!strncmp(move, "rate", 4)) {
-                        printf("minimax value: %d\n\n", ggtl_rate_move(game));
+                        printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
                         board = NULL;
                 }
                 else if (!strncmp(move, "redisp", 6)) {
-                        board = ggtl_peek_state(game);
+                        board = ggtl_peek_pos(game);
                 }
 		else if (!strncmp(move, "save", 4)) {
 			printf("Saving game, need a name: "); fflush(stdout);
 			getline(move, sizeof move);
-			if (ggtl_save(game, move))
+			if (!save(move, game))
 				puts("success");
 			else puts("failed");
 			board = NULL;
@@ -116,10 +93,11 @@ struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			printf("Loading game, need a name: "); fflush(stdout);
 			getline(move, sizeof move);
 			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-			if (move[0] && tmp && (board = ggtl_resume(tmp, move))) {
+			if (move[0] && (tmp = resume(move))) {
 				printf("loaded game from `%s'.", move);
 				ggtl_free(game);
 				game = tmp;
+				board = ggtl_peek_pos(game);
 			}
 			else {
 				printf("failed loading game from `%s'.", move);
@@ -128,28 +106,25 @@ struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			}
 		}
                 else {
-			move[0] -= '0';
-			move[1] -= '0';
-			board = ggtl_move(game, move);
+			struct ggtl_move *mv = ensure_move();
+			mv->col = move[0] - '0';
+			board = ggtl_move(game, mv);
 			
 			if (!board) {
-				board = ggtl_alphabeta_iterative(game);
+				ggtl_push_move(game, mv);
+				if (fixed) 
+					board = ggtl_alphabeta(game, ply);
+				else
+					board = ggtl_alphabeta_iterative(game, ply);
+				if (board) {
+					printf("searched to ply %d\n",
+						ggtl_get(game, GGTL_PLY_LAST));
+				}
 			}
 		}
 	} 
 
-	score = count_pieces(board, 1);
-	score -= count_pieces(board, 2);
-
-	if (score > 0) {
-		printf("Player 1 won, with a margin of %d\n\n", score);
-	}
-	else if (score < 0) {
-		printf("Player 2 won, with a margin of %d\n\n", -score);
-	}
-	else {
-		puts("The game ended in a draw\n\n");
-	}
+	gameover(board);
 	return game;
 }
 
@@ -157,33 +132,27 @@ struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 int main(int argc, char **argv)
 {
 	struct ggtl *game;
-	char board[8][8] = {{0}};
-	int ply1 = 30, ply2 = 30;
-
-	board[3][4] = board[4][3] = 1;
-	board[3][3] = board[4][4] = 2;
+	struct ggtl_pos *pos, start = {NULL, {{0}}, 1};
+	int debug, fixed, level1, level2;
 
 	greeting();
+	getopts(argc, argv, &debug, &fixed, &level1, &level2);
 
+	pos = copy_pos(NULL, &start);
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	if (!ggtl_init(game, board, sizeof board, 2)) {
+	if (!ggtl_init(game, pos)) {
 		ggtl_free(game);
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
 	}
+	ggtl_set(game, GGTL_DEBUG, debug);
 
-	if (argc > 1) {
-		ply1 = atoi(argv[1]);
-	}
-	if (argc > 2) {
-		ply2 = atoi(argv[2]);
-	}
-
-	srand(time(NULL));
-	game = mainloop(game, ply1, ply2);
+	game = mainloop(game, fixed, level1, level2);
 	ggtl_free(game);
 
 	return 0;
 }
 
 
+/* arch-tag: Stig Brautaset Mon Apr 14 13:11:04 BST 2003
+ */

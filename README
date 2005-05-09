@@ -1,9 +1,10 @@
 Moth -- my/mini othello
 =======================
 
-Moth is an Othello game for the console by Stig Brautaset. It is
+Moth is an Othello game with a console and OpenGL frontend. It is
 written as a `proof of concept' for GGTL, the Generic Game-Tree
-Library. It is fairly simplistic, -- but some of the features include:
+Library. It is fairly simplistic, -- but some of the features
+include:
 
  o unlimited undo
  o save to file / resume from file
@@ -13,21 +14,12 @@ Library. It is fairly simplistic, -- but some of the features include:
    - computer vs computer 
  o various difficulty levels
 
-The AI player is provided by GGTL. It use an Alpha-Beta algorithm
-with iterative deepening and naive move ordering (based on the
-previous searches).
-
-Difficult-levels can be specified on the commandline -- 0 to N,
-where N is a positive integer. N is only limited by how long you
-care to wait for Moth to move (and how much memory your machine
-has ;) ).
-                                                                                                                               
-moth 30 30    # both players get 30/100 seconds to find a move
-moth 30 50    # player 1 get 30/100 seconds; player 2 get 1/2 second
-moth 50       # equivalent to `moth 50 30' since 30 is default setting
+The AI player is provided by GGTL. It uses an Alpha-Beta
+algorithm with iterative deepening (the default, but fixed-depth
+search is available too).
 
 You can play either (or both) players, and you can change which
-one you want to play as you go. Just hit enter will make Moth
+one you want to play as you go. Just hit enter will make the AI
 pick a move as best as it can; put in coordinates and you pick a
 move. 
 
