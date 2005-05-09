@@ -184,10 +184,12 @@ static void gameover(struct reversi_state *board)
 
 static void mydisplay(void)
 {
-        int ply;
-        struct reversi_state *board = ggtl_peek_state(game);
         int width = glutGet(GLUT_WINDOW_WIDTH);
         int height = glutGet(GLUT_WINDOW_HEIGHT);
+        struct reversi_state *board = ggtl_peek_state(game);
+
+        if (ggtl_game_over(game)) 
+                gameover(board);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
@@ -195,9 +197,6 @@ static void mydisplay(void)
         glClearColor(0.0, 0.0, 1.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
-
-        if (ggtl_game_over(game)) 
-                gameover(board);
 
         drawgrid(width, height);
         drawstate(board, width, height);
