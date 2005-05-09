@@ -20,13 +20,33 @@ AM_CONDITIONAL(WITH_GLUT, test x$ac_use_glut = xyes)
 # Checks for programs.
 AC_PROG_CC
 
-AC_CHECK_LIB(options, opt_val)
-AC_CHECK_LIB(ggtl, ggtl_new)
+# Check for libraries.
+AC_CHECK_LIB(options, opt_val, [], [ AC_MSG_ERROR([
+  Fatal error -- the options library is missing.
+  options is available at http://brautaset.org/projects/options/
+  ])
+])
+AC_CHECK_LIB(ggtl, ggtl_new, [], [ AC_MSG_ERROR([
+  Fatal error -- the GGTL library is missing.
+  GGTL is available at http://brautaset.org/projects/ggtl/
+  ])
+])
 AC_CHECK_LIB(glut, glutInit)
 
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h string.h])
+AC_CHECK_HEADERS([options/opt.h], [], [ AC_MSG_ERROR([
+  Fatal error -- the options header file is missing.
+  options is available at http://brautaset.org/projects/options/ 
+  ])
+])
+AC_CHECK_HEADERS([ggtl/ggtl.h], [], [ AC_MSG_ERROR([
+  Fatal error -- the GGTL header file is missing.
+  GGTL is available at http://brautaset.org/projects/ggtl/ 
+  ])
+])
+
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
