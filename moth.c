@@ -60,11 +60,18 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[100] = {0};
 	const void *board;
-	bool show;
+	bool show = true;
 	int tmp, maxply, player;
 
-	board = ggtl_current_state(game);
-	do {
+	for (;;) {
+                board = ggtl_current_state(game);
+                if (show == true) {
+                        display(board);
+                }
+
+		if (end_of_game(board, 1) || end_of_game(board, 2))
+			break;
+		
 		player = ggtl_player_turn(game); 
 		if (player == 1) {
 			maxply = ply1;
@@ -73,10 +80,10 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			maxply = ply2;
 		}
 
-		printf("\nplayer %d:\n", player);
+		printf("\nplayer %d (%c),\n", player, player==1?'-':'#');
 
-#if 0
-		fputs("Chose action (00-77 / undo / eval): ", stdout);
+#if 1
+		fputs("Chose action (00-77 / ENTER / undo / eval): ", stdout);
 		fflush(stdout);
 		fgets(move, sizeof move, stdin);
 #endif
@@ -94,17 +101,14 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
                 else if (ggtl_make_move(game, move)) {
                         show = true;
                 }
-                else { 
-			printf("maximum ply = %d\n", maxply);
-			ggtl_alphabeta(game, maxply);
-			show = true;
-                }
-
-                board = ggtl_current_state(game);
-                if (show == true) {
-                        display(board);
-                }
-	} while (!end_of_game(board, 1));
+		else {
+			printf("trying alphabeta to ply %d ...\n", maxply);
+			if (ggtl_alphabeta(game, maxply))
+				show = true;
+			else 
+				show = false;
+		}
+	}
 
 	tmp = count_pieces(board, 1);
 	tmp -= count_pieces(board, 2);
@@ -135,7 +139,7 @@ void display(const void *boarddata)
 		for (j = 0; j < 8; j++) {
 			c = a(board, i, j);
 			if (c != 0)
-				printf(" %d |", c);
+				printf(" %c |", c==1?'-':'#');
 			else 
 				printf("   |");
 		}
@@ -176,8 +180,8 @@ int find_moves(struct ggtl *game, const void *boarddata, int me)
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			if (valid_move(board, i, j, me, false)) {
-				mv[0] = i; 
-				mv[1] = j; 
+				mv[0] = j + '0'; 
+				mv[1] = i + '0'; 
 				ggtl_add_move(game, mv);
 				cnt++;
 			}
@@ -185,7 +189,7 @@ int find_moves(struct ggtl *game, const void *boarddata, int me)
 	}
 
 	if (!cnt) {
-		mv[0] = mv[1] = -1;
+		mv[0] = mv[1] = -1 + '0';
 		ggtl_add_move(game, mv);
 		cnt++;
 	}
@@ -213,8 +217,8 @@ bool make_move(void *boarddata, const void *movedata, int me)
 {
 	char *board = boarddata;
 	const char *move = movedata;
-	int x = move[0];
-	int y = move[1];
+	int y = move[0] - '0';
+	int x = move[1] - '0';
 
 	if (x == -1 && y == -1) 
 		return true;
