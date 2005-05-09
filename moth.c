@@ -113,7 +113,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
 	const void *board;
-	int score, maxply, player;
+	int score, player;
 
 	board = ggtl_peek_state(game);
 	for (;;) {
@@ -128,10 +128,10 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 
 		player = ggtl_get(game, GGTL_PLAYER_TURN); 
 		if (player == 1) {
-			maxply = ply1;
+			ggtl_set(game, GGTL_PLY_LIM, ply1);
 		}
 		else {
-			maxply = ply2;
+			ggtl_set(game, GGTL_PLY_LIM, ply2);
 		}
 
 		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
@@ -146,7 +146,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
                         }
                 }
                 else if (!strncmp(move, "rate", 4)) {
-                        printf("minimax value: %d\n\n", ggtl_rate_move(game, maxply));
+                        printf("minimax value: %d\n\n", ggtl_rate_move(game));
                         board = NULL;
                 }
 		else if (!strncmp(move, "save", 4)) {
@@ -179,7 +179,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			board = ggtl_move(game, move);
 			
 			if (!board) {
-				board = ggtl_alphabeta(game, maxply);
+				board = ggtl_alphabeta(game);
 			}
 		}
 	} 
