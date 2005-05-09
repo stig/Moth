@@ -99,13 +99,13 @@ static void mymouse(int button, int state, int x, int y)
 /*
  * Draw a disc in the quadrant specified
  */
-static void drawdisc(int x1, int y1, int x2, int y2)
+static void drawdisc(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
 {
         int i;
-        int rx = (x2 - x1) / 2;
-        int ry = (y2 - y1) / 2;
-        int x = x1 + rx;
-        int y = y1 + ry;
+        GLdouble rx = (x2 - x1) / 2.0;
+        GLdouble ry = (y2 - y1) / 2.0;
+        GLdouble x = x1 + rx;
+        GLdouble y = y1 + ry;
 
         glBegin(GL_POLYGON);
         for (i = 0; i < 360; i++) {
@@ -120,19 +120,19 @@ static void drawdisc(int x1, int y1, int x2, int y2)
 /* 
  * Draw the grid
  */
-static void drawgrid(int width, int height)
+static void drawgrid(GLdouble width, GLdouble height)
 {
         int i;
-        GLfloat x_step = width / size;
-        GLfloat y_step = height / size;
+        GLdouble x_step = width / size;
+        GLdouble y_step = height / size;
 
         glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_LINES);
-        for (i = 0; i < size+1; i++) {
-                glVertex2f(0.0, y_step * i);
-                glVertex2f((GLfloat)width, y_step * i);
-                glVertex2f(x_step * i, 0.0);
-                glVertex2f(x_step * i, (GLfloat)height);
+        for (i = 1; i <= size; i++) {
+                glVertex2d(0.0, y_step * i);
+                glVertex2d(width, y_step * i);
+                glVertex2d(x_step * i, 0.0);
+                glVertex2d(x_step * i, height);
         }
         glEnd();
 }
@@ -142,10 +142,10 @@ static void drawgrid(int width, int height)
  * Draw a state; wizz through an array and draw discs in the correct
  * colour when needed.
  */
-static void drawstate(struct reversi_state *board, int width, int height)
+static void drawstate(struct reversi_state *board, GLdouble width, GLdouble height)
 {
-        int x_step = width / size;
-        int y_step = height / size;
+        GLdouble x_step = width / (GLdouble)size;
+        GLdouble y_step = height / (GLdouble)size;
         int i, j, c;
 
         for (i = 0; i < size; i++) {
@@ -156,10 +156,10 @@ static void drawstate(struct reversi_state *board, int width, int height)
                                 else glColor3f(0.0, 0.0, 0.0);
 
                                 drawdisc(
-                                        x_step * i,
-                                        y_step * j,
-                                        x_step * (i+1), 
-                                        y_step * (j+1)
+                                        x_step * (GLdouble)i,
+                                        y_step * (GLdouble)j,
+                                        x_step * (GLdouble)(i+1), 
+                                        y_step * (GLdouble)(j+1)
                                 );
                         }
                 }
