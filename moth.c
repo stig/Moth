@@ -141,7 +141,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			}
 			else {
 				puts("failed");
-				ggtl_free(game);
+				ggtl_free(tmp);
 				show = false;
 			}
 		}
