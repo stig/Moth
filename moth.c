@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <ggtl.h>
 
@@ -10,7 +12,7 @@ int evaluate(void *boarddata, int me);
 
 static bool valid_move(char *board, int x, int y, int me, bool domove);
 void display(const void *boarddata);
-void mainloop(struct ggtl *game);
+void mainloop(struct ggtl *game, int maxply);
 static int count_pieces(const void *boarddata, int me);
 
 #define a(A, B, C) A[(B) * 8 + (C)]
@@ -30,10 +32,11 @@ const int heuristic[8][8] = {	{9, 2, 7, 8, 8, 7, 2, 9},
 				{9, 2, 7, 8, 8, 7, 2, 9} 
 };
 
-int main(void)
+int main(int argc, char **argv)
 {
 	struct ggtl *game;
 	char board[8][8] = {{0}};
+	int ply = 3;
 
 	board[3][3] = board[4][4] = 1;
 	board[3][4] = board[4][3] = 2;
@@ -41,9 +44,64 @@ int main(void)
 	game = ggtl_new(board, sizeof board, 2);
 	ggtl_add_callbacks(game, end_of_game, find_moves, make_move, evaluate);
 
-	mainloop(game);
+	if (argc > 1) {
+		ply = atoi(argv[1]);
+	}
+	mainloop(game, ply);
 
 	return 0;
+}
+
+void mainloop(struct ggtl *game, int maxply)
+{	
+	char move[100];
+	void *board;
+	bool show;
+	int tmp;
+
+	board = ggtl_peek_current_state(game);
+	do {
+		show = true;
+#if 0
+		fputs("Chose action (00-77 / undo / eval): ", stdout);
+		fflush(stdout);
+		fgets(move, sizeof move, stdin);
+#endif
+		if (!strncmp(move, "undo", 4)) {
+                        if (!ggtl_undo_move(game)) {
+                                puts("Error: no move to undo\n");
+                                show = false;
+                        }
+                }
+                else if (!strncmp(move, "eval", 4)) {
+                        printf("minimax value: %d\n\n", evaluate(board, 1));
+                        show = false;
+                }
+                else if (ggtl_make_move(game, move)) {
+                        show = true;
+                }
+                else if (ggtl_alphabeta(game, maxply)) {
+                        show = true;
+                }
+
+                board = ggtl_peek_current_state(game);
+                if (show == true) {
+                        display(board);
+                }
+	} while (!end_of_game(board, 1));
+
+	tmp = count_pieces(board, 1);
+	tmp -= count_pieces(board, 2);
+
+	if (tmp > 0) {
+		printf("Player 1 won, with a margin of %d\n\n", tmp);
+	}
+	else if (tmp < 0) {
+		printf("Player 2 won, with a margin of %d\n\n", -tmp);
+	}
+	else {
+		puts("The game ended in a draw\n\n");
+	}
 }
 
 void display(const void *boarddata)
@@ -67,35 +125,6 @@ void display(const void *boarddata)
 		}
 		puts("\n  +---+---+---+---+---+---+---+---+");
 
-	}
-}
-
-void mainloop(struct ggtl *game)
-{	
-	void *board;
-	int tmp;
-
-	do {
-		ggtl_alphabeta(game, 5);
-		board = ggtl_peek_current_state(game);
-		display(board);
-#if 0
-		puts("press enter for next move");
-		getchar();
-#endif
-	} while (!end_of_game(board, 1));
-
-	tmp = count_pieces(board, 1);
-	tmp -= count_pieces(board, 2);
-
-	if (tmp > 0) {
-		printf("Player 1 won, with a margin of %d\n\n", tmp);
-	}
-	else if (tmp < 0) {
-		printf("Player 2 won, with a margin of %d\n\n", -tmp);
-	}
-	else {
-		puts("The game ended in a draw\n\n");
 	}
 }
 
