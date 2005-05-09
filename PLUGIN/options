@@ -1,8 +1,5 @@
-string  moth-bug-email	moth-bugs@brautaset.org
-        Where to send bugreports or feature requests.
-
-binary	glut		yes
-	Whether we can link to glut.
+binary	have-glut	yes
+	Whether to build the graphical frontend (requires glut).
 	The default is yes.
 
 binary	fixeddepth	no

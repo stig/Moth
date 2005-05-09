@@ -110,7 +110,11 @@ static void mymouse(int button, int state, int x, int y)
 		}
 			
 		if (button == GLUT_RIGHT_BUTTON) {
+#if cfg__fixeddepth
 			(void)ggtl_alphabeta_iterative(game, ply);
+#else
+			(void)ggtl_alphabeta(game, ply);
+#endif
 		}
 	}
 

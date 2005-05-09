@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <config-options.h>
 #include <moth/libmoth.h>
 
 
@@ -49,7 +48,7 @@ void greeting(void)
 	puts("Copyright (C) 2003 Stig Brautaset, Dimitris Parapadakis &");
 	puts("the University of Westminster, London, UK.");
 	puts("This is free software; see the source for details.\n");
-	printf("Report bugs to <%s>.\n\n", cfg__moth_bug_email);
+	puts("Report bugs to <stig@brautaset.org>.\n");
 }
 
 

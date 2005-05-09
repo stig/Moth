@@ -148,7 +148,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			
 			if (!board) {
 
-#ifndef cfg__fixeddepth
+#if cfg__fixeddepth
 				board = ggtl_alphabeta_iterative(game, ply);
 #else
 				board = ggtl_alphabeta(game, ply);
