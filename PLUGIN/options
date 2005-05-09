@@ -1,3 +1,6 @@
-string  moth-bug-email		moth-bugs@brautaset.org
-        where to send bugreports or feature requests
+string  moth-bug-email	moth-bugs@brautaset.org
+        Where to send bugreports or feature requests.
 
+binary	gmoth		yes
+	Whether to build the graphical frontend (requires glut).
+	The default is yes.
