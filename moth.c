@@ -33,11 +33,13 @@ int end_of_game(const void *boarddata, int me);
 void find_moves(struct ggtl *game, const void *boarddata, int me);
 int evaluate(const void *boarddata, int me);
 
-static int valid_move(const char *board, int x, int y, int me);
-void display(const void *boarddata);
-void mainloop(struct ggtl *game, int ply1, int ply2);
 static int count_pieces(const void *boarddata, int me);
+static int valid_move(const char *board, int x, int y, int me);
+static int getline(char *s, int size);
 
+/*
+ * Used to simulate multi-dimensional array for a one-dimensional one
+ */
 #define a(A, B, C) A[(B) * 8 + (C)]
 
 /* One global variable -- whether this should remain global or not is
@@ -65,51 +67,38 @@ void greeting(void)
 }
 
 
-int main(int argc, char **argv)
+/* 
+ * Draw a game position on screen.
+ */
+void display(const void *boarddata)
 {
-	struct ggtl *game;
-	char board[8][8] = {{0}};
-	int ply1 = 30, ply2 = 30;
+	const char *board = boarddata;
+	int i, j, c;
 
-	board[3][4] = board[4][3] = 1;
-	board[3][3] = board[4][4] = 2;
+	printf("\n   ");
+	for (i = 0; i < 8; i++)
+		printf(" %d  ", i);
+	puts("\n  +---+---+---+---+---+---+---+---+");
 
-	greeting();
+	for (i = 0; i < 8; i++) {
+		printf("%d |", i);
+		for (j = 0; j < 8; j++) {
+			c = a(board, i, j);
+			if (c != 0)
+				printf(" %c |", c==1?'-':'#');
+			else 
+				printf("   |");
+		}
+		puts("\n  +---+---+---+---+---+---+---+---+");
 
-	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	if (!ggtl_init(game, board, sizeof board, 2)) {
-		ggtl_free(game);
-		puts("sorry -- NO GAME FOR YOU!");
-		return EXIT_FAILURE;
 	}
-
-	if (argc > 1) {
-		ply1 = atoi(argv[1]);
-	}
-	if (argc > 2) {
-		ply2 = atoi(argv[2]);
-	}
-
-	srand(time(NULL));
-	mainloop(game, ply1, ply2);
-
-	return 0;
 }
 
 
-int getline(char *s, int size)
-{
-	char fmt[50];
-	int ret;
-	snprintf(fmt, sizeof fmt, "%%%d[^\n]%%*[^\n]", size);
-	*s = '\0';
-	ret = scanf(fmt, s);
-	getchar();
-	return ret;
-}
-	
-
-void mainloop(struct ggtl *game, int ply1, int ply2)
+/* 
+ * This function actually plays the game.
+ */
+struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
 	const void *board;
@@ -196,36 +185,46 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 	else {
 		puts("The game ended in a draw\n\n");
 	}
-	ggtl_free(game);
+	return game;
 }
 
 
-void display(const void *boarddata)
+int main(int argc, char **argv)
 {
-	const char *board = boarddata;
-	int i, j, c;
+	struct ggtl *game;
+	char board[8][8] = {{0}};
+	int ply1 = 30, ply2 = 30;
 
-	printf("\n   ");
-	for (i = 0; i < 8; i++)
-		printf(" %d  ", i);
-	puts("\n  +---+---+---+---+---+---+---+---+");
+	board[3][4] = board[4][3] = 1;
+	board[3][3] = board[4][4] = 2;
 
-	for (i = 0; i < 8; i++) {
-		printf("%d |", i);
-		for (j = 0; j < 8; j++) {
-			c = a(board, i, j);
-			if (c != 0)
-				printf(" %c |", c==1?'-':'#');
-			else 
-				printf("   |");
-		}
-		puts("\n  +---+---+---+---+---+---+---+---+");
+	greeting();
 
+	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
+	if (!ggtl_init(game, board, sizeof board, 2)) {
+		ggtl_free(game);
+		puts("sorry -- NO GAME FOR YOU!");
+		return EXIT_FAILURE;
 	}
+
+	if (argc > 1) {
+		ply1 = atoi(argv[1]);
+	}
+	if (argc > 2) {
+		ply2 = atoi(argv[2]);
+	}
+
+	srand(time(NULL));
+	game = mainloop(game, ply1, ply2);
+	ggtl_free(game);
+
+	return 0;
 }
 
 
 /* 
+ * Evaluate a board position for the given player.
+ * 
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
@@ -258,6 +257,10 @@ int evaluate(const void *boarddata, int me)
 }
 
 
+/* 
+ * Find and add possible moves at this position to GGTL's internal
+ * lists.
+ */
 void find_moves(struct ggtl *game, const void *boarddata, int me)
 {
 	const char *board = boarddata;
@@ -283,6 +286,10 @@ void find_moves(struct ggtl *game, const void *boarddata, int me)
 }
 
 
+/* 
+ * Return zero if the game has _not_ ended at this position (for the
+ * current player), and non-zero if it has.
+ */
 int end_of_game(const void *boarddata, int me)
 {
 	const char *board = boarddata;
@@ -448,21 +455,6 @@ int make_move(void *boarddata, const void *movedata, int me)
 }
 
 
-static int count_pieces(const void *boarddata, int me)
-{
-	const char *board = boarddata;
-	int i, j, count = 0;
-
-	for (i = 0; i < 8; i++) {
-		for (j = 0; j < 8; j++) {
-			if (a(board, i, j) == me)
-				count++;
-		}
-	}
-	return count;
-}
-
-
 /* 
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
@@ -542,5 +534,38 @@ static int valid_move(const char *board, int x, int y, int me)
 
 	/* if we get here the move was illegal */
 	return 0;
+}
+
+
+/* 
+ * Count the number of pieces on the board for the given player
+ */
+static int count_pieces(const void *boarddata, int me)
+{
+	const char *board = boarddata;
+	int i, j, count = 0;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			if (a(board, i, j) == me)
+				count++;
+		}
+	}
+	return count;
+}
+
+
+/* 
+ * Get a line of input
+ */
+int getline(char *s, int size)
+{
+	char fmt[50];
+	int ret;
+	snprintf(fmt, sizeof fmt, "%%%d[^\n]%%*[^\n]", size);
+	*s = '\0';
+	ret = scanf(fmt, s);
+	getchar();
+	return ret;
 }
 
