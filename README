@@ -1,5 +1,3 @@
-Copyright (C) 2003 Stig Brautaset
-
 moth -- my/mini othello
 =======================
 
@@ -12,3 +10,5 @@ The `AI' is nothing fancy, simply a straight minimax-search with
 alpha-beta pruning, as provided out-of-the-box by GGTL. It's fairly
 effective though.
 
+
+`moth' is written by Stig Brautaset <stig@brautaset.org>
