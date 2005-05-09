@@ -27,12 +27,12 @@
 
 
 /* prototype for callbacks */
-bool make_move(void *boarddata, const void *movedata, int me);
-bool end_of_game(const void *boarddata, int me);
+int make_move(void *boarddata, const void *movedata, int me);
+int end_of_game(const void *boarddata, int me);
 void  find_moves(struct ggtl *game, const void *boarddata, int me);
 int evaluate(const void *boarddata, int me);
 
-static bool valid_move(char *board, int x, int y, int me, bool domove);
+static int valid_move(char *board, int x, int y, int me, int domove);
 void display(const void *boarddata);
 void mainloop(struct ggtl *game, int ply1, int ply2);
 static int count_pieces(const void *boarddata, int me);
@@ -76,7 +76,6 @@ int main(int argc, char **argv)
 	greeting();
 
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	ggtl_memoptions(game, true, true, 2, 10);
 	if (!ggtl_init(game, board, sizeof board, 2)) {
 		ggtl_free(game);
 		puts("sorry -- NO GAME FOR YOU!");
@@ -126,7 +125,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			break;
 		}
 
-		player = ggtl_player_turn(game); 
+		player = ggtl_get(game, GGTL_PLAYER_TURN); 
 		if (player == 1) {
 			maxply = ply1;
 		}
@@ -140,13 +139,13 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 		getline(move, sizeof move);
 
 		if (!strncmp(move, "undo", 4)) {
-			board = ggtl_undo_move(game);
+			board = ggtl_undo(game);
                         if (!board) {
                                 puts("Error: no move to undo\n");
                         }
                 }
                 else if (!strncmp(move, "rate", 4)) {
-                        printf("minimax value: %d\n\n", ggtl_rate_last(game, maxply));
+                        printf("minimax value: %d\n\n", ggtl_rate_move(game, maxply));
                         board = NULL;
                 }
 		else if (!strncmp(move, "save", 4)) {
@@ -163,7 +162,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			getline(move, sizeof move);
 			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
 			if (move[0] && tmp && (board = ggtl_resume(tmp, move))) {
-				printf("stored current state in `%s'.", move);
+				printf("loaded game from `%s'.", move);
 				ggtl_free(game);
 				game = tmp;
 			}
@@ -176,7 +175,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
                 else {
 			move[0] -= '0';
 			move[1] -= '0';
-			board = ggtl_make_move(game, move);
+			board = ggtl_move(game, move);
 			
 			if (!board) {
 				board = ggtl_alphabeta(game, maxply);
@@ -226,10 +225,11 @@ void display(const void *boarddata)
 int evaluate(const void *boarddata, int me)
 {
 	const char *board = boarddata;
+	int c, i, j;
 	int not_me = 3 - me;
 	int myscore = 0, notmyscore = 0;
 
-#if 0
+#if 1
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			c = a(board, i, j);
@@ -259,7 +259,7 @@ void find_moves(struct ggtl *game, const void *boarddata, int me)
 	cnt = 0;
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			if (valid_move(board, i, j, me, false)) {
+			if (valid_move(board, i, j, me, 0)) {
 				mv[0] = j; 
 				mv[1] = i; 
 				ggtl_add_move(game, mv);
@@ -277,23 +277,23 @@ void find_moves(struct ggtl *game, const void *boarddata, int me)
 	return cnt;
 }
 
-bool end_of_game(const void *boarddata, int me)
+int end_of_game(const void *boarddata, int me)
 {
 	const char *board = boarddata;
 	int i, j, not_me = 3 - me;
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			if (valid_move(board, i, j, me, false))
-				return false;
-			if (valid_move(board, i, j, not_me, false))
-				return false;
+			if (valid_move(board, i, j, me, 0))
+				return 0;
+			if (valid_move(board, i, j, not_me, 0))
+				return 0;
 		}
 	}
-	return true;
+	return 1;
 }
 
-bool make_move(void *boarddata, const void *movedata, int me)
+int make_move(void *boarddata, const void *movedata, int me)
 {
 	char *board = boarddata;
 	const char *move = movedata;
@@ -302,12 +302,12 @@ bool make_move(void *boarddata, const void *movedata, int me)
 
 	/* null or pass move */
 	if (x == -1 && y == -1) 
-		return true;
+		return 1;
 
 	if (x < 0 || x > 7 || y < 0 || y > 7) 
-		return false;
+		return 0;
 
-	return valid_move(board, x, y, me, true);
+	return valid_move(board, x, y, me, 1);
 }
 
 static int count_pieces(const void *boarddata, int me)
@@ -324,21 +324,21 @@ static int count_pieces(const void *boarddata, int me)
 	return count;
 }
 
-static bool valid_move(char *board, int x, int y, int me, bool domove)
+static int valid_move(char *board, int x, int y, int me, int domove)
 {
 	int not_me = 3 - me;
 	int tx, ty, flipped = 0;
 
 	/* slot must not already be occupied */
 	if (a(board, x, y) != 0)
-		return false;
+		return 0;
 
 	/* left */
 	for (tx = x - 1; tx >= 0 && a(board, tx, y) == not_me; tx--)
 		;
 	if (tx >= 0 && tx != x - 1 && a(board, tx, y) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		tx = x - 1;
 		while (tx >= 0 && a(board, tx, y) == not_me) {
@@ -352,8 +352,8 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	for (tx = x + 1; tx < 8 && a(board, tx, y) == not_me; tx++)
 		;
 	if (tx < 8 && tx != x + 1 && a(board, tx, y) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		tx = x + 1;
 		while (tx < 8 && a(board, tx, y) == not_me) {
@@ -367,8 +367,8 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	for (ty = y - 1; ty >= 0 && a(board, x, ty) == not_me; ty--)
 		;
 	if (ty >= 0 && ty != y - 1 && a(board, x, ty) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		ty = y - 1;
 		while (ty >= 0 && a(board, x, ty) == not_me) {
@@ -382,8 +382,8 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	for (ty = y + 1; ty < 8 && a(board, x, ty) == not_me; ty++)
 		;
 	if (ty < 8 && ty != y + 1 && a(board, x, ty) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		ty = y + 1;
 		while (ty < 8 && a(board, x, ty) == not_me) {
@@ -401,8 +401,8 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	}
 	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
 			a(board, tx, ty) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		tx = x - 1;
 		ty = y - 1;
@@ -421,8 +421,8 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	}
 	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
 			a(board, tx, ty) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		tx = x - 1;
 		ty = y + 1;
@@ -441,8 +441,8 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	}
 	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
 			a(board, tx, ty) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		tx = x + 1;
 		ty = y + 1;
@@ -461,8 +461,8 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	}
 	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
 			a(board, tx, ty) == me) {
-		if (domove == false)
-			return true;
+		if (domove == 0)
+			return 1;
 
 		tx = x + 1;
 		ty = y - 1;
@@ -473,11 +473,11 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 		flipped++;
 	}
 
-	if (domove == false) 
-		return false;
+	if (domove == 0) 
+		return 0;
 
 	a(board, x, y) = me;
 	if (flipped == 0) 
-		return false;
-	return true;
+		return 0;
+	return 1;
 }
