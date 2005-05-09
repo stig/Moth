@@ -198,6 +198,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 	ggtl_free(game);
 }
 
+
 void display(const void *boarddata)
 {
 	const char *board = boarddata;
@@ -222,6 +223,11 @@ void display(const void *boarddata)
 	}
 }
 
+
+/* 
+ * This function is heavily inspired by code in GNOME Iagno, which is
+ * Copyright (C) Ian Peters <ipeters@acm.org> 
+ */
 int evaluate(const void *boarddata, int me)
 {
 	const char *board = boarddata;
@@ -277,6 +283,7 @@ void find_moves(struct ggtl *game, const void *boarddata, int me)
 	return cnt;
 }
 
+
 int end_of_game(const void *boarddata, int me)
 {
 	const char *board = boarddata;
@@ -292,6 +299,7 @@ int end_of_game(const void *boarddata, int me)
 	}
 	return 1;
 }
+
 
 int make_move(void *boarddata, const void *movedata, int me)
 {
@@ -310,6 +318,7 @@ int make_move(void *boarddata, const void *movedata, int me)
 	return valid_move(board, x, y, me, 1);
 }
 
+
 static int count_pieces(const void *boarddata, int me)
 {
 	const char *board = boarddata;
@@ -324,6 +333,11 @@ static int count_pieces(const void *boarddata, int me)
 	return count;
 }
 
+
+/* 
+ * This function is heavily inspired by code in GNOME Iagno, which is
+ * Copyright (C) Ian Peters <ipeters@acm.org> 
+ */
 static int valid_move(char *board, int x, int y, int me, int domove)
 {
 	int not_me = 3 - me;
