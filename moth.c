@@ -2,13 +2,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <ggtl/ggtl.h>
+#include "ggtl/ggtl.h"
 
 /* prototype for callbacks */
-bool end_of_game(void *boarddata, int me);
-int find_moves(struct ggtl *game, void *boarddata, int me);
-bool make_move(void *boarddata, void *movedata, int me);
-int evaluate(void *boarddata, int me);
+bool end_of_game(const void *boarddata, int me);
+int find_moves(struct ggtl *game, const void *boarddata, int me);
+bool make_move(void *boarddata, const void *movedata, int me);
+int evaluate(const void *boarddata, int me);
 
 static bool valid_move(char *board, int x, int y, int me, bool domove);
 void display(const void *boarddata);
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	board[3][4] = board[4][3] = 1;
 	board[3][3] = board[4][4] = 2;
 
-	game = ggtl_init(board, sizeof board, 2);
+	game = ggtl_init_default(board, sizeof board, 2);
 	ggtl_callbacks(game, end_of_game, find_moves, make_move, evaluate);
 
 	if (argc > 1) {
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[100] = {0};
-	void *board;
+	const void *board;
 	bool show;
 	int tmp, maxply, player;
 
@@ -144,7 +144,7 @@ void display(const void *boarddata)
 	}
 }
 
-int evaluate(void *boarddata, int me)
+int evaluate(const void *boarddata, int me)
 {
 	const char *board = boarddata;
 	int not_me = 3 - me;
@@ -167,10 +167,9 @@ int evaluate(void *boarddata, int me)
 }
 
 
-int  find_moves(struct ggtl *game, void *boarddata, int me)
+int find_moves(struct ggtl *game, const void *boarddata, int me)
 {
-	nodeptr tmp, movelist = NULL;
-	char *board = boarddata;
+	const char *board = boarddata;
 	char mv[2], i, j, cnt;
 	
 	cnt = 0;
@@ -194,9 +193,9 @@ int  find_moves(struct ggtl *game, void *boarddata, int me)
 	return cnt;
 }
 
-bool end_of_game(void *boarddata, int me)
+bool end_of_game(const void *boarddata, int me)
 {
-	char *board = boarddata;
+	const char *board = boarddata;
 	int i, j, not_me = 3 - me;
 
 	for (i = 0; i < 8; i++) {
@@ -210,7 +209,7 @@ bool end_of_game(void *boarddata, int me)
 	return true;
 }
 
-bool make_move(void *boarddata, void *movedata, int me)
+bool make_move(void *boarddata, const void *movedata, int me)
 {
 	char *board = boarddata;
 	const char *move = movedata;
