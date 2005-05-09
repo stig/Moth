@@ -15,5 +15,5 @@ include 	$(makefiles)/install-programs.mk
 
 # Documents are installed by default
 
-extradocs 	:= TODO THANKS README LICENCE
+docs 		:= THANKS README LICENCE
 include 	$(makefiles)/install-docs.mk
