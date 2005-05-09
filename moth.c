@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
-	char move[100];
+	char move[100] = {0};
 	void *board;
 	bool show;
 	int tmp, maxply, player;
