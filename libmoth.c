@@ -62,12 +62,10 @@ int save(char *fn, struct ggtl *g)
 		return -1;
 
 	if (ggtl_save(g, fp, write_pos, write_move)) {
-		puts("foo1");
 		retval = -1;
 	}
 
 	if (fclose(fp)) {
-		puts("foo2");
 		retval = -1;
 	}
 
