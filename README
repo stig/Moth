@@ -10,5 +10,16 @@ The `AI' is nothing fancy, simply a straight minimax-search with
 alpha-beta pruning, as provided out-of-the-box by GGTL. It's fairly
 effective though.
 
+Difficult-levels can be specified on the commandline -- 0 to N, where N
+is a positive integer. N is only limited by how long you can be arsed to
+wait for it to move (and how much memory you have ;) ).
+                                                                                                                               
+moth 3 3      # makes both players search to 3 ply (this is the default)
+moth 3 5      # makes player one search to 3 ply and player two to 5 ply 
+moth 5        # equivalent to `moth 5 3' since 3 is default setting
+
+You can play either (or both) players, and you can change which one you 
+want to play as you go. Just hit enter will make moth pick a move as 
+best as it can, put in coordinates and you pick a move. 
 
 `moth' is written by Stig Brautaset <stig@brautaset.org>
