@@ -101,23 +101,38 @@ void getopts(int argc, char **argv)
  */
 static void mykeyboard(unsigned char key, int x, int y)
 {
-        ggtl_ai_trace(game, get(TRACE));
-        ggtl_ai_level(game, get(LEVEL));
+        int level = get(LEVEL);
+        int trace = get(TRACE);
+
+        ggtl_ai_trace(game, trace);
+        ggtl_ai_level(game, level);
 
         switch(key) {
+                case 'l':
+                        set(LEVEL, level + 1);
+                        break;
+
+                case 'L':
+                        if (level > 1) { set(LEVEL, level - 1); }
+                        break;
+
+                case 't':
+                        set(TRACE, trace + 1);
+                        break;
+
+                case 'T':
+                        if (trace > -2) { set(TRACE, trace - 1); }
+                        break;
+
                 case 'u':
-                case 'U':
                         (void)ggtl_undo(game);
                         break;
 
                 case ' ':
-                case 'm':
-                case 'M':
                         ggtl_ai_move(game);
                         break;
 
                 case 'q': 
-                case 'Q':
                         ggtl_free(game);
                         exit(EXIT_SUCCESS);
                         break;
