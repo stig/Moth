@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "moth/moth-common.h"
+#include "config-include/config-options.h"
 
 
 
@@ -152,6 +153,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			board = ggtl_move(game, &mv);
 			
 			if (!board) {
+
 #if cfg__moth_iterative
 				board = ggtl_alphabeta_iterative(game);
 #else
