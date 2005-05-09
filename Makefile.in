@@ -1,8 +1,23 @@
-mains	:= moth.c
-libs	:= $(objroot)/ggtl/libggtl.a $(objroot)/yalla/libyalla.a
 
-include $(makefiles)/programs.mk
-include $(makefiles)/install-programs.mk
+# Build gMoth by default, but have an option to turn it off
+ifeq ($(cfg__gmoth), 1)
 
-extradocs := TODO CREDITS README LICENCE
-include $(makefiles)/install-docs.mk
+mains		:= moth.c gmoth.c
+libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/yalla/libyalla.a -lglut -lm
+
+else
+
+mains		:= moth.c
+ignore-files	:= gmoth.c
+libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/yalla/libyalla.a 
+
+endif
+
+include 	$(makefiles)/programs.mk
+include 	$(makefiles)/install-programs.mk
+
+
+# Documents are installed by default
+
+extradocs 	:= TODO THANKS README LICENCE
+include 	$(makefiles)/install-docs.mk
