@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <options/opt.h>
-#include <connect4/libc4.h>
+#include "libc4.h"
 
 void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *level2)
 {

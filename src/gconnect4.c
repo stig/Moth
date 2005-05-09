@@ -22,8 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
-#include <config-options.h>
-#include <connect4/libc4.h>
+#include "libc4.h"
 
 enum {
 	XRES = 400,

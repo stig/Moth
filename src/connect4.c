@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <connect4/libc4.h>
+#include "libc4.h"
 
 
 
