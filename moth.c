@@ -56,7 +56,6 @@ int main(int argc, char **argv)
 	}
 
 	mainloop(game, ply1, ply2);
-	ggtl_free(game);
 
 	return 0;
 }
@@ -152,6 +151,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 	else {
 		puts("The game ended in a draw\n\n");
 	}
+	ggtl_free(game);
 }
 
 void display(const void *boarddata)
