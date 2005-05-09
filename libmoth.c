@@ -344,12 +344,16 @@ struct ggtl_pos *make_move(struct ggtl *g, struct ggtl_pos *b, struct ggtl_move 
 		return pos;
 	}
 
-	if (x < 0 || x > 7 || y < 0 || y > 7) 
+	if (x < 0 || x > 7 || y < 0 || y > 7) {
+		ggtl_push_pos(g, pos);
 		return NULL;
+	}
 
 	/* slot must not already be occupied */
-	if (pos->b[x][y] != 0)
+	if (pos->b[x][y] != 0) {
+		ggtl_push_pos(g, pos);
 		return NULL;
+	}
 
 	/* left */
 	for (tx = x - 1; tx >= 0 && pos->b[tx][y] == not_me; tx--)
@@ -468,7 +472,7 @@ struct ggtl_pos *make_move(struct ggtl *g, struct ggtl_pos *b, struct ggtl_move 
 	}
 
 	if (flipped == 0) {
-		free(pos);
+		ggtl_push_pos(g, pos);
 		return NULL;
 	}
 

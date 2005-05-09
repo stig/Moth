@@ -147,7 +147,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			board = ggtl_move(game, mv);
 			
 			if (!board) {
-
+				ggtl_push_move(game, mv);
 #if cfg__fixeddepth
 				board = ggtl_alphabeta(game, ply);
 #else

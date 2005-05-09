@@ -107,7 +107,8 @@ static void mymouse(int button, int state, int x, int y)
 			mv->y = 7 - y / (height / 8);
 			mv->x = x / (width / 8);
 
-			(void)ggtl_move(game, mv);
+			if (!ggtl_move(game, mv))
+				ggtl_push_move(game, mv);
 		}
 			
 		if (button == GLUT_RIGHT_BUTTON) {
