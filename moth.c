@@ -149,9 +149,9 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			if (!board) {
 
 #if cfg__fixeddepth
-				board = ggtl_alphabeta_iterative(game, ply);
-#else
 				board = ggtl_alphabeta(game, ply);
+#else
+				board = ggtl_alphabeta_iterative(game, ply);
 #endif
 				if (board) {
 					printf("searched to ply %d\n",
