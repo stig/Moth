@@ -195,6 +195,7 @@ void gameover(const char *board)
 		puts("The game ended in a draw\n\n");
 	}
 	ggtl_free(game);
+	exit(EXIT_SUCCESS);
 }
 
 void mydisplay(void)
