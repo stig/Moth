@@ -1,36 +1,127 @@
-/* 
- * moth -- an Othello game (console version)
- * Copyright (C) 2003 Stig Brautaset, Dimitris Parapadakis and the
- * University of Westminster, London, UK.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "moth/moth-common.h"
-#include "config-include/config-options.h"
+#include <assert.h>
+#include <ggtl/ggtl.h>
 
+/* prototype for callbacks */
+bool end_of_game(void *boarddata, int me);
+nodeptr find_moves(void *boarddata, nodeptr *availmoves, int me);
+bool make_move(void *boarddata, void *movedata, int me);
+int evaluate(void *boarddata, int me);
 
+static bool valid_move(char *board, int x, int y, int me, bool domove);
+void display(const void *boarddata);
+void mainloop(struct ggtl *game, int ply1, int ply2);
+static int count_pieces(const void *boarddata, int me);
 
-/* 
- * Draw a game position on screen.
+#define a(A, B, C) A[(B) * 8 + (C)]
+
+/* One global variable -- whether this should remain global or not is
+ * uncertain -- I need to profile the code to know that. Intuitively it
+ * should be faster not having to create this on every entry of the
+ * evaluation function, but that might not be the case anyway.
  */
-static void display(const struct ggtl_state *b)
+const int heuristic[8][8] = {	{9, 2, 7, 8, 8, 7, 2, 9},
+				{2, 1, 3, 4, 4, 3, 1, 2},
+				{7, 3, 6, 5, 5, 6, 3, 7},
+				{8, 4, 5, 1, 1, 5, 4, 8},
+				{8, 4, 5, 1, 1, 5, 4, 8},
+				{7, 3, 6, 5, 5, 6, 3, 7},
+				{2, 1, 3, 4, 4, 3, 1, 2},
+				{9, 2, 7, 8, 8, 7, 2, 9} 
+};
+
+int main(int argc, char **argv)
 {
+	struct ggtl *game;
+	char board[8][8] = {{0}};
+	int ply1 = 3, ply2 = 3;
+
+	board[3][4] = board[4][3] = 1;
+	board[3][3] = board[4][4] = 2;
+
+	game = ggtl_new(board, sizeof board, 2);
+	ggtl_add_callbacks(game, end_of_game, find_moves, make_move, evaluate);
+
+	if (argc > 1) {
+		ply1 = atoi(argv[1]);
+	}
+	if (argc > 2) {
+		ply2 = atoi(argv[2]);
+	}
+	mainloop(game, ply1, ply2);
+
+	return 0;
+}
+
+void mainloop(struct ggtl *game, int ply1, int ply2)
+{	
+	char move[100];
+	void *board;
+	bool show;
+	int tmp, maxply, player;
+
+	board = ggtl_peek_current_state(game);
+	do {
+		player = ggtl_player_turn(game); 
+		if (player == 1) {
+			maxply = ply1;
+		}
+		else {
+			maxply = ply2;
+		}
+
+		printf("\nplayer %d:\n", player);
+
+#if 0
+		fputs("Chose action (00-77 / undo / eval): ", stdout);
+		fflush(stdout);
+		fgets(move, sizeof move, stdin);
+#endif
+		if (!strncmp(move, "undo", 4)) {
+			show = true;
+                        if (!ggtl_undo_move(game)) {
+                                puts("Error: no move to undo\n");
+                                show = false;
+                        }
+                }
+                else if (!strncmp(move, "eval", 4)) {
+                        printf("minimax value: %d\n\n", evaluate(board, 1));
+                        show = false;
+                }
+                else if (ggtl_make_move(game, move)) {
+                        show = true;
+                }
+                else { 
+			printf("maximum ply = %d\n", maxply);
+			ggtl_alphabeta(game, maxply);
+			show = true;
+                }
+
+                board = ggtl_peek_current_state(game);
+                if (show == true) {
+                        display(board);
+                }
+	} while (!end_of_game(board, 1));
+
+	tmp = count_pieces(board, 1);
+	tmp -= count_pieces(board, 2);
+
+	if (tmp > 0) {
+		printf("Player 1 won, with a margin of %d\n\n", tmp);
+	}
+	else if (tmp < 0) {
+		printf("Player 2 won, with a margin of %d\n\n", -tmp);
+	}
+	else {
+		puts("The game ended in a draw\n\n");
+	}
+}
+
+void display(const void *boarddata)
+{
+	const char *board = boarddata;
 	int i, j, c;
 
 	printf("\n   ");
@@ -41,11 +132,9 @@ static void display(const struct ggtl_state *b)
 	for (i = 0; i < 8; i++) {
 		printf("%d |", i);
 		for (j = 0; j < 8; j++) {
-			c = b->b[i][j];
-			if (c == 1)
-				printf(" - |");
-			else if (c == 2) 
-				printf(" X |");
+			c = a(board, i, j);
+			if (c != 0)
+				printf(" %d |", c);
 			else 
 				printf("   |");
 		}
@@ -54,164 +143,257 @@ static void display(const struct ggtl_state *b)
 	}
 }
 
-
-/* 
- * Get a line of input
- */
-static int getline(char *s, size_t size)
+int evaluate(void *boarddata, int me)
 {
-	char fmt[50];
-	int ret;
-	sprintf(fmt, "%%%lu[^\n]%%*[^\n]", size);
-	*s = '\0';
-	ret = scanf(fmt, s);
-	getchar();
-	return ret;
+	const char *board = boarddata;
+	int not_me = 3 - me;
+	int i, j, c, score = 0;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			c = a(board, i, j);
+			if (c == me) {
+				score += heuristic[i][j];
+				score++;
+			}
+			else if (c == not_me) {
+				score -= heuristic[i][j];
+				score++;
+			}
+		}
+	}
+	return score;
 }
 
 
-/* 
- * This function actually plays the game.
- */
-static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
-{	
-	char move[128] = {0};
-	const struct ggtl_state *board;
-	int score;
-
-	board = ggtl_peek_state(game);
-	for (;;) {
-		if (board) {
-			display(board);
-		}
-
-		board = ggtl_peek_state(game);
-		if (end_of_game(board)) {
-			break;
-		}
-		printf("\nplayer %d (%c)\n", board->player, board->player==1?'-':'X');
-		puts("Action (00-77|ENTER|undo|rate|redisp|save|load)?");
-
-
-		if (board) {
-			if (board->player == 1) {
-				ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
-				ggtl_set(game, GGTL_PLY_LIM, ply1);
-			}
-			else {
-				ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
-				ggtl_set(game, GGTL_PLY_LIM, ply2);
-			}
-		}
-
-		getline(move, sizeof move);
-
-		if (!strncmp(move, "undo", 4)) {
-			board = ggtl_undo(game);
-                        if (!board) {
-                                puts("Error: no move to undo\n");
-                        }
-                }
-                else if (!strncmp(move, "rate", 4)) {
-			int ply = ggtl_get(game, GGTL_PLY_LAST);
-			if (ply < 1) ply = ggtl_get(game, GGTL_PLY_LIM);
-
-                        printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
-                        board = NULL;
-                }
-                else if (!strncmp(move, "redisp", 6)) {
-                        board = ggtl_peek_state(game);
-                }
-		else if (!strncmp(move, "save", 4)) {
-			printf("Saving game, need a name: "); fflush(stdout);
-			getline(move, sizeof move);
-			if (ggtl_save(game, move))
-				puts("success");
-			else puts("failed");
-			board = NULL;
-		}
-		else if (!strncmp(move, "load", 4)) {
-			struct ggtl *tmp;
-			printf("Loading game, need a name: "); fflush(stdout);
-			getline(move, sizeof move);
-			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-			if (move[0] && tmp && (board = ggtl_resume(tmp, move))) {
-				printf("loaded game from `%s'.", move);
-				ggtl_free(game);
-				game = tmp;
-			}
-			else {
-				printf("failed loading game from `%s'.", move);
-				ggtl_free(tmp);
-				board = NULL;
-			}
-		}
-                else {
-			struct ggtl_move mv;
-			mv.x = move[1] - '0';
-			mv.y = move[0] - '0';
-			board = ggtl_move(game, &mv);
-			
-			if (!board) {
-
-#if cfg__moth_iterative
-				board = ggtl_alphabeta_iterative(game);
-#else
-				board = ggtl_alphabeta(game);
-#endif
-				if (board) {
-					printf("searched to ply %d\n",
-						ggtl_get(game, GGTL_PLY_LAST));
-				}
-			}
-		}
-	} 
-
-	score = count_pieces(board, 1);
-	score -= count_pieces(board, 2);
-
-	if (score > 0) {
-		printf("Player 1 won, with a margin of %d\n\n", score);
-	}
-	else if (score < 0) {
-		printf("Player 2 won, with a margin of %d\n\n", -score);
-	}
-	else {
-		puts("The game ended in a draw\n\n");
-	}
-	return game;
-}
-
-
-int main(int argc, char **argv)
+nodeptr find_moves(void *boarddata, nodeptr *availmoves, int me)
 {
-	struct ggtl *game;
-	struct ggtl_state initial = {{{0}}, 1};
-	int ply1 = 1, ply2 = 1;
-
-	initial.b[3][4] = initial.b[4][3] = 1;
-	initial.b[3][3] = initial.b[4][4] = 2;
-
-	greeting();
-
-	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	if (!ggtl_init(game, &initial, sizeof initial, sizeof(struct ggtl_move))) {
-		ggtl_free(game);
-		puts("sorry -- NO GAME FOR YOU!");
-		return EXIT_FAILURE;
+	nodeptr tmp, movelist = NULL;
+	char *board = boarddata;
+	char *mv, i, j;
+	
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			if (valid_move(board, i, j, me, false)) {
+				tmp = sll_pop(availmoves); 
+				assert(tmp != NULL); 
+				mv = sll_peek(tmp); 
+				assert(mv != NULL);
+				mv[0] = i + '0'; 
+				mv[1] = j + '0'; 
+				sll_push(&movelist, tmp); 
+			}
+		}
 	}
 
-	if (argc > 1) {
-		ply1 = atoi(argv[1]);
-	}
-	if (argc > 2) {
-		ply2 = atoi(argv[2]);
+	if (!movelist) {
+		tmp = sll_pop(availmoves);
+		mv = sll_peek(tmp);
+		mv[0] = mv[1] = -1 + '0';
+		sll_push(&movelist, tmp);
 	}
 
-	game = mainloop(game, ply1, ply2);
-	ggtl_free(game);
-
-	return 0;
+	return movelist;
 }
 
+bool end_of_game(void *boarddata, int me)
+{
+	char *board = boarddata;
+	int i, j, not_me = 3 - me;
 
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			if (valid_move(board, i, j, me, false))
+				return false;
+			if (valid_move(board, i, j, not_me, false))
+				return false;
+		}
+	}
+	return true;
+}
+
+bool make_move(void *boarddata, void *movedata, int me)
+{
+	char *board = boarddata;
+	const char *move = movedata;
+	int x, y;
+
+	x = move[0] - '0';
+	y = move[1] - '0';
+
+	if (x == -1 && y == -1) 
+		return true;
+	return valid_move(board, x, y, me, true);
+}
+
+static int count_pieces(const void *boarddata, int me)
+{
+	const char *board = boarddata;
+	int i, j, count = 0;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			if (a(board, i, j) == me)
+				count++;
+		}
+	}
+	return count;
+}
+
+static bool valid_move(char *board, int x, int y, int me, bool domove)
+{
+	int not_me = 3 - me;
+	int tx, ty, flipped = 0;
+
+	/* slot must not already be occupied */
+	if (a(board, x, y) != 0)
+		return false;
+
+	/* left */
+	for (tx = x - 1; tx >= 0 && a(board, tx, y) == not_me; tx--)
+		;
+	if (tx >= 0 && tx != x - 1 && a(board, tx, y) == me) {
+		if (domove == false)
+			return true;
+
+		tx = x - 1;
+		while (tx >= 0 && a(board, tx, y) == not_me) {
+			a(board, tx, y) = me;
+			tx--;
+		}
+		flipped++;
+	}
+
+	/* right */
+	for (tx = x + 1; tx < 8 && a(board, tx, y) == not_me; tx++)
+		;
+	if (tx < 8 && tx != x + 1 && a(board, tx, y) == me) {
+		if (domove == false)
+			return true;
+
+		tx = x + 1;
+		while (tx < 8 && a(board, tx, y) == not_me) {
+			a(board, tx, y) = me;
+			tx++;
+		}
+		flipped++;
+	}
+
+	/* up */
+	for (ty = y - 1; ty >= 0 && a(board, x, ty) == not_me; ty--)
+		;
+	if (ty >= 0 && ty != y - 1 && a(board, x, ty) == me) {
+		if (domove == false)
+			return true;
+
+		ty = y - 1;
+		while (ty >= 0 && a(board, x, ty) == not_me) {
+			a(board, x, ty) = me;
+			ty--;
+		}
+		flipped++;
+	}
+	
+	/* down */
+	for (ty = y + 1; ty < 8 && a(board, x, ty) == not_me; ty++)
+		;
+	if (ty < 8 && ty != y + 1 && a(board, x, ty) == me) {
+		if (domove == false)
+			return true;
+
+		ty = y + 1;
+		while (ty < 8 && a(board, x, ty) == not_me) {
+			a(board, x, ty) = me;
+			ty++;
+		}
+		flipped++;
+	}
+	
+	/* up/left */
+	tx = x - 1;
+	ty = y - 1; 
+	while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
+		tx--; ty--;
+	}
+	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
+			a(board, tx, ty) == me) {
+		if (domove == false)
+			return true;
+
+		tx = x - 1;
+		ty = y - 1;
+		while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx--; ty--;
+		}
+		flipped++;
+	}
+
+	/* up/right */
+	tx = x - 1;
+	ty = y + 1; 
+	while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
+		tx--; ty++;
+	}
+	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
+			a(board, tx, ty) == me) {
+		if (domove == false)
+			return true;
+
+		tx = x - 1;
+		ty = y + 1;
+		while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx--; ty++;
+		}
+		flipped++;
+	}
+	
+	/* down/right */
+	tx = x + 1;
+	ty = y + 1; 
+	while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
+		tx++; ty++;
+	}
+	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
+			a(board, tx, ty) == me) {
+		if (domove == false)
+			return true;
+
+		tx = x + 1;
+		ty = y + 1;
+		while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx++; ty++;
+		}
+		flipped++;
+	}
+
+	/* down/left */
+	tx = x + 1;
+	ty = y - 1;
+	while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
+		tx++; ty--;
+	}
+	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
+			a(board, tx, ty) == me) {
+		if (domove == false)
+			return true;
+
+		tx = x + 1;
+		ty = y - 1;
+		while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx++; ty--;
+		}
+		flipped++;
+	}
+
+	if (domove == false) 
+		return false;
+
+	a(board, x, y) = me;
+	if (flipped == 0) 
+		return false;
+	return true;
+}
