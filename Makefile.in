@@ -2,11 +2,11 @@
 # Do we have glut?
 ifneq ($(strip $(cfg__glut)),)
   mains		:= moth.c gmoth.c
-  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a $(cfg__glut) -lm
+  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a $(objroot)/options/liboptions.a $(cfg__glut) -lm 
 else
   mains		:= moth.c
   ignore-files	:= gmoth.c
-  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a 
+  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a $(objroot)/options/liboptions.a 
 endif
 
 include 	$(makefiles)/programs.mk

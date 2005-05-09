@@ -14,18 +14,9 @@ include:
    - computer vs computer 
  o various difficulty levels
 
-The AI player is provided by GGTL. It use an Alpha-Beta algorithm
-with iterative deepening and naive move ordering (based on the
-previous searches).
-
-Difficult-levels can be specified on the commandline -- 0 to N,
-where N is the number of seconds you want to allow the game to
-search for each move. N is only limited by how long you care to
-wait for the AI to move, and how much memory your machine has ;)
-
-moth 3 3	# both players get 3 seconds to find a move
-moth 3 5	# player 1 get 3 seconds; player 2 get 5 seconds
-moth 5		# equivalent to `moth 5 3' since 1 is default 
+The AI player is provided by GGTL. It uses an Alpha-Beta
+algorithm with iterative deepening (the default, but fixed-depth
+search is available too).
 
 You can play either (or both) players, and you can change which
 one you want to play as you go. Just hit enter will make the AI

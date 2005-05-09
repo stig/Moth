@@ -34,7 +34,11 @@ struct ggtl_move {
 	int x, y;
 };
 
+extern struct opt_defs options[];
+
+
 /* libmoth.c */
+void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *level2);
 void greeting(void);
 int save(char *fn, struct ggtl *g);
 struct ggtl *resume(char *fn);

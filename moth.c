@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <config-options.h>
 #include <moth/libmoth.h>
 
 
@@ -72,7 +71,7 @@ static int getline(char *s, size_t size)
 /* 
  * This function actually plays the game.
  */
-static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
+static struct ggtl *mainloop(struct ggtl *game, int fixed, int ply1, int ply2)
 {	
 	char move[128] = {0};
 	struct ggtl_pos *board;
@@ -148,11 +147,10 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			
 			if (!board) {
 				ggtl_push_move(game, mv);
-#if cfg__fixeddepth
-				board = ggtl_alphabeta(game, ply);
-#else
-				board = ggtl_alphabeta_iterative(game, ply);
-#endif
+				if (fixed)
+					board = ggtl_alphabeta(game, ply);
+				else 
+					board = ggtl_alphabeta_iterative(game, ply);
 			}
 		}
 	} 
@@ -177,12 +175,13 @@ int main(int argc, char **argv)
 {
 	struct ggtl *game;
 	struct ggtl_pos *pos, start = {NULL, {{0}}, 1};
-	int ply1 = 1, ply2 = 1;
+	int debug, fixed, level1, level2;
+
+	greeting();
+	getopts(argc, argv, &debug, &fixed, &level1, &level2);
 
 	start.b[3][4] = start.b[4][3] = 1;
 	start.b[3][3] = start.b[4][4] = 2;
-
-	greeting();
 
 	pos = copy_pos(NULL, &start);
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
@@ -191,15 +190,9 @@ int main(int argc, char **argv)
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
 	}
+	ggtl_set(game, GGTL_DEBUG, debug);
 
-	if (argc > 1) {
-		ply1 = atoi(argv[1]);
-	}
-	if (argc > 2) {
-		ply2 = atoi(argv[2]);
-	}
-
-	game = mainloop(game, ply1, ply2);
+	game = mainloop(game, fixed, level1, level2);
 	ggtl_free(game);
 
 	return 0;

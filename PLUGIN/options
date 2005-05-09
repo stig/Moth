@@ -1,3 +1,0 @@
-binary	fixeddepth	no
-	Don't use iterative deepening, but search to fixed depth instead.
-	Default is no.

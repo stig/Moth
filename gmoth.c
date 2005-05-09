@@ -29,7 +29,7 @@
 
 
 struct ggtl *game;
-int ply1, ply2;
+int ply1, ply2, fixed;
 
 
 /* 
@@ -112,11 +112,10 @@ static void mymouse(int button, int state, int x, int y)
 		}
 			
 		if (button == GLUT_RIGHT_BUTTON) {
-#if cfg__fixeddepth
-			(void)ggtl_alphabeta(game, ply);
-#else
-			(void)ggtl_alphabeta_iterative(game, ply);
-#endif
+			if (fixed)
+				(void)ggtl_alphabeta(game, ply);
+			else
+				(void)ggtl_alphabeta_iterative(game, ply);
 		}
 	}
 
@@ -242,6 +241,7 @@ static void mydisplay(void)
 int main(int argc, char **argv)
 {
 	struct ggtl_pos *pos, start = {NULL, {{0}}, 1};
+	int debug;
 
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -253,6 +253,7 @@ int main(int argc, char **argv)
         glutMouseFunc(mymouse);
 
 	greeting();
+	getopts(argc, argv, &debug, &fixed, &ply1, &ply2);
 
 	start.b[3][4] = start.b[4][3] = 1;
 	start.b[3][3] = start.b[4][4] = 2;
@@ -265,18 +266,7 @@ int main(int argc, char **argv)
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
 	}
-
-	ply1 = 1;
-	ply2 = 1;
-	/* difficulty level for player 1 */
-	if (argc > 1) {
-		ply1 = atoi(argv[1]);
-	}
-
-	/* difficulty level for player 2 */
-	if (argc > 2) {
-		ply2 = atoi(argv[2]);
-	}
+	ggtl_set(game, GGTL_DEBUG, debug);
 
         glutMainLoop();
 	return 0;

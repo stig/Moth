@@ -20,8 +20,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <options/opt.h>
 #include <moth/libmoth.h>
-
 
 /* One global variable -- whether this should remain global or not is
  * uncertain -- I need to profile the code to know that. Intuitively it
@@ -38,6 +38,57 @@ const int heuristic[8][8] = {	{9, 2, 7, 8, 8, 7, 2, 9},
 				{9, 2, 7, 8, 8, 7, 2, 9} 
 };
 
+
+
+void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *level2)
+{
+	struct opt *opts;
+	int help, longhelp, error;
+	struct opt_defs options[] = {
+		{"help", "h", opt_bool, "0",	"Print a short help message and exit"},
+		{"longhelp", "H", opt_bool, "0","Print help with default values and exit"},
+		{"debug", "d", opt_bool, "0",	"Print debug level messages"},
+		{"fixed", "f", opt_bool, "0",	"Fixed-depth search (turn off iterative deepening)"},
+		{"level1", "1", opt_int, "3",	"Depth of search (times 10ms for iterative deepening) -- player 1"},
+		{"level2", "2", opt_int, "3",	"Depth of search (times 10ms for iterative deepening) -- player 2"},
+		OPT_DEFS_END
+	};
+
+	opts = opt_init(options);
+	if (!opts) {
+		fputs("Option parsing initialisation failure\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	if ((error = opt_parse(opts, argc, argv))) {
+		fprintf(stderr, "Failure parsing options: %s\n", 
+				opt_strerror(error));
+		exit(EXIT_FAILURE);
+	}
+
+	error |= opt_val(opts, "help", &help);
+	error |= opt_val(opts, "longhelp", &longhelp);
+	error |= opt_val(opts, "debug", debug);
+	error |= opt_val(opts, "fixed", fixed);
+	error |= opt_val(opts, "level1", level1);
+	error |= opt_val(opts, "level2", level2);
+	if (error) {
+		fprintf(stderr, "Failure retrieving values. ");
+		fprintf(stderr, "Last error was: %s\n", opt_strerror(error));
+		exit(EXIT_FAILURE);
+	}
+	opt_free(opts);
+
+	if (help || longhelp) {
+		opt_desc(options, longhelp);
+		exit(EXIT_SUCCESS);
+	}
+
+	if (!fixed) {
+		*level1 *= 10;
+		*level2 *= 10;
+	}
+}
 
 /* 
  * Print greeting and warranty details.
