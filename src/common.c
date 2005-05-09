@@ -4,7 +4,7 @@
 #include <options/opt.h>
 #include "common.h"
 
-void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *level2)
+void getopts(int argc, char **argv, int *size, int *debug, int *fixed, int *level1, int *level2)
 {
 	struct opt *opts;
 	int help, longhelp, error;
@@ -12,6 +12,7 @@ void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *le
 		{"help", "h", 0, "0",	"Print a short help message and exit"},
 		{"longhelp", "H", 0, "0","Print help with default values and exit"},
 		{"debug", "d", 1, "-2",	"Print debug level messages"},
+		{"size", "s", 1, "8",	"Size of board (default: 8)"},
 		{"fixed", "f", 0, "0",	"Fixed-depth search (turn off iterative deepening)"},
 		{"level1", "1", 1, "3",	"Depth of search (times 10ms for iterative deepening) -- player 1"},
 		{"level2", "2", 1, "3",	"Depth of search (times 10ms for iterative deepening) -- player 2"},
@@ -32,6 +33,7 @@ void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *le
 
 	error |= opt_val(opts, "help", "int", &help);
 	error |= opt_val(opts, "longhelp", "int", &longhelp);
+	error |= opt_val(opts, "size", "int", size);
 	error |= opt_val(opts, "debug", "int", debug);
 	error |= opt_val(opts, "fixed", "int", fixed);
 	error |= opt_val(opts, "level1", "str", level1);

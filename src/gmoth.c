@@ -73,15 +73,17 @@ static void mymouse(int button, int state, int x, int y)
 {
         int width = glutGet(GLUT_WINDOW_WIDTH);
         int height = glutGet(GLUT_WINDOW_HEIGHT);
-        void *moved = NULL;
+        struct reversi_state *s = ggtl_peek_state(game);
+        int size = s->size;
 
         if (state == GLUT_DOWN) {
+                void *moved = NULL;
                 if (button == GLUT_LEFT_BUTTON) {
                         struct reversi_move *mv;
 
                         mv = reversi_move_new(
-                          x / (width / 8), 
-                          7 - y / (height / 8)
+                          x / (width / size), 
+                          (size - 1) - y / (height / size)
                         );
                         moved = ggtl_move(game, mv);
                 }
@@ -123,12 +125,14 @@ static void drawdisc(int x1, int y1, int x2, int y2)
 static void drawgrid(int width, int height)
 {
         int i;
-        GLfloat x_step = width / 8.0;
-        GLfloat y_step = height / 8.0;
+        struct reversi_state *state = ggtl_peek_state(game);
+        int size = state->size;
+        GLfloat x_step = width / (GLfloat)size;
+        GLfloat y_step = height / (GLfloat)size;
 
         glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_LINES);
-        for (i = 0; i < 9; i++) {
+        for (i = 0; i < size+1; i++) {
                 glVertex2f(0.0, y_step * i);
                 glVertex2f((GLfloat)width, y_step * i);
                 glVertex2f(x_step * i, 0.0);
@@ -144,12 +148,13 @@ static void drawgrid(int width, int height)
  */
 static void drawstate(struct reversi_state *board, int width, int height)
 {
+        int size = board->size;
+        int x_step = width / size;
+        int y_step = height / size;
         int i, j, c;
-        int x_step = width / 8;
-        int y_step = height / 8;
 
-        for (i = 0; i < 8; i++) {
-                for (j = 0; j < 8; j++) {
+        for (i = 0; i < size; i++) {
+                for (j = 0; j < size; j++) {
                         c = board->board[i][j];
                         if (c) {
                                 if (c == 1) glColor3f(1.0, 1.0, 1.0);
@@ -211,7 +216,7 @@ static void mydisplay(void)
 int main(int argc, char **argv)
 {
         struct reversi_state *pos;
-        int debug;
+        int debug, size;
 
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -222,9 +227,10 @@ int main(int argc, char **argv)
         glutDisplayFunc(mydisplay);
         glutMouseFunc(mymouse);
 
-        getopts(argc, argv, &debug, &fixed, &ply1, &ply2);
+        getopts(argc, argv, &size, &debug, &fixed, &ply1, &ply2);
 
-        pos = reversi_state_new(8);
+        size += size % 2 ? 1 : 0;
+        pos = reversi_state_new(size);
         game = reversi_init(ggtl_new(), pos);
 
         if (!game) {

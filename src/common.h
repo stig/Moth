@@ -7,7 +7,7 @@ struct ggtl_pos;
 struct ggtl_move;
 
 /* common.c */
-void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *level2);
+void getopts(int argc, char **argv, int *size, int *debug, int *fixed, int *level1, int *level2);
 
 #endif /* !src__common_h */
 
