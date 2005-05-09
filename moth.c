@@ -62,8 +62,10 @@ void greeting(void)
 {
 	puts("This is moth, an othello game for console.");
 	puts("Copyright (C) 2003 Stig Brautaset.");
-	puts("This is free software; see the source for details.\n");
-	printf("Report bugs to <%s>.\n\n", cfg__moth_bug_email);
+	puts("This is free software; see the source for copying conditions.");
+	puts("There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A");
+	puts("PARTICULAR PURPOSE.\n");
+	printf("Please report bugs to <%s>.\n\n", cfg__moth_bug_email);
 }
 
 
