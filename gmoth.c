@@ -95,16 +95,16 @@ static void mykeyboard(unsigned char key, int x, int y)
  */
 static void mymouse(int button, int state, int x, int y)
 {
-	char move[2];
+	struct ggtl_move mv;
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
 
-	move[0] = 7 - y / (height / 8);
-	move[1] = x / (width / 8);
+	mv.y = 7 - y / (height / 8);
+	mv.x = x / (width / 8);
 
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
-			(void)ggtl_move(game, move);
+			(void)ggtl_move(game, &mv);
 		}
 			
 		if (button == GLUT_RIGHT_BUTTON) {
@@ -162,7 +162,7 @@ static void drawgrid(int width, int height)
  * Draw a state; wizz through an array and draw discs in the correct
  * colour when needed.
  */
-static void drawstate(const char *board, int width, int height)
+static void drawstate(const struct ggtl_state *board, int width, int height)
 {
 	int i, j, c;
 	int x_step = width / 8;
@@ -170,7 +170,7 @@ static void drawstate(const char *board, int width, int height)
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			c = a(board, i, j);
+			c = board->b[i][j];
 			if (c) {
 				if (c == 1) glColor3f(1.0, 1.0, 1.0);
 				else glColor3f(0.0, 0.0, 0.0);
@@ -182,7 +182,7 @@ static void drawstate(const char *board, int width, int height)
 }
 
 
-static void gameover(const char *board)
+static void gameover(const struct ggtl_state *board)
 {
 	int score;
 
@@ -205,7 +205,7 @@ static void gameover(const char *board)
 
 static void mydisplay(void)
 {
-	const char *board = ggtl_peek_state(game);
+	const struct ggtl_state *board = ggtl_peek_state(game);
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
 	int player;
@@ -217,16 +217,17 @@ static void mydisplay(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
-	if (end_of_game(board, 1) && end_of_game(board, 2)) {
+	if (end_of_game(board)) {
 		gameover(board);
 	}
 
-	player = ggtl_get(game, GGTL_PLAYER_TURN); 
-	if (player == 1) {
-		ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
-	}
-	else {
-		ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
+	if (board) {
+		if (board->player == 1) {
+			ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
+		}
+		else {
+			ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
+		}
 	}
 
 	drawgrid(width, height);
@@ -239,7 +240,7 @@ static void mydisplay(void)
 
 int main(int argc, char **argv)
 {
-	char board[8][8] = {{0}};
+	struct ggtl_state board = {{{0}}, 1};
 
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -252,17 +253,17 @@ int main(int argc, char **argv)
 
 	greeting();
 
-	board[3][4] = board[4][3] = 1;
-	board[3][3] = board[4][4] = 2;
+	board.b[3][4] = board.b[4][3] = 1;
+	board.b[3][3] = board.b[4][4] = 2;
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	if (!ggtl_init(game, board, sizeof board, 2)) {
+	if (!ggtl_init(game, &board, sizeof board, sizeof(struct ggtl_move))) {
 		ggtl_free(game);
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
 	}
 
-	ply1 = 30;
-	ply2 = 30;
+	ply1 = 1;
+	ply2 = 1;
 	/* difficulty level for player 1 */
 	if (argc > 1) {
 		ply1 = atoi(argv[1]);
