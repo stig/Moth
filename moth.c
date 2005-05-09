@@ -11,8 +11,24 @@ int evaluate(const void *boarddata, int me);
 static bool valid_move(char *board, int x, int y, int me, bool domove);
 void display(const void *boarddata);
 void mainloop(struct ggtl *game);
+static int count_pieces(const void *boarddata, int me);
 
 #define a(A, B, C) A[(B) * 8 + (C)]
+
+/* One global variable -- whether this should remain global or not is
+ * uncertain -- I need to profile the code to know that. Intuitively it
+ * should be faster not having to create this on every entry of the
+ * evaluation function, but that might not be the case anyway.
+ */
+const int heuristic[8][8] = {	{9, 2, 7, 8, 8, 7, 2, 9},
+				{2, 1, 3, 4, 4, 3, 1, 2},
+				{7, 3, 6, 5, 5, 6, 3, 7},
+				{8, 4, 5, 1, 1, 5, 4, 8},
+				{8, 4, 5, 1, 1, 5, 4, 8},
+				{7, 3, 6, 5, 5, 6, 3, 7},
+				{2, 1, 3, 4, 4, 3, 1, 2},
+				{9, 2, 7, 8, 8, 7, 2, 9} 
+};
 
 int main(void)
 {
@@ -35,7 +51,7 @@ void display(const void *boarddata)
 	const char *board = boarddata;
 	int i, j, c;
 
-	printf("   ");
+	printf("\n   ");
 	for (i = 0; i < 8; i++)
 		printf(" %d  ", i);
 	puts("\n  +---+---+---+---+---+---+---+---+");
@@ -57,46 +73,51 @@ void display(const void *boarddata)
 void mainloop(struct ggtl *game)
 {	
 	const void *board;
+	int tmp;
 
-	while (ggtl_alphabeta(game, 2)) {
+	do {
+		ggtl_alphabeta(game, 5);
 		board = ggtl_peek_current_state(game);
 		display(board);
+#if 0
 		puts("press enter for next move");
 		getchar();
-	}
-}
+#endif
+	} while (!end_of_game(board, 1));
 
-static int eval_heuristic(const char *board, int me)
-{
-	int i, j, c, score = 0;
-	int not_me = 3 - me;
-	int heuristic[8][8] = { {9, 2, 7, 8, 8, 7, 2, 9},
-				{2, 1, 3, 4, 4, 3, 1, 2},
-				{7, 3, 6, 5, 5, 6, 3, 7},
-				{8, 4, 5, 1, 1, 5, 4, 8},
-				{8, 4, 5, 1, 1, 5, 4, 8},
-				{7, 3, 6, 5, 5, 6, 3, 7},
-				{2, 1, 3, 4, 4, 3, 1, 2},
-				{9, 2, 7, 8, 8, 7, 2, 9} };
+	tmp = count_pieces(board, 1);
+	tmp -= count_pieces(board, 2);
 
-	for (i = 0; i < 8; i++) {
-		for (j = 0; j < 8; j++) {
-			c = a(board, i, j);
-			if (c == me) 
-				score += heuristic[i][j];
-			else if (c == not_me)
-				score -= heuristic[i][j];
-		}
+	if (tmp > 0) {
+		printf("Player 1 won, with a margin of %d\n\n", tmp);
 	}
-	return score;
+	else if (tmp < 0) {
+		printf("Player 2 won, with a margin of %d\n\n", -tmp);
+	}
+	else {
+		puts("The game ended in a draw\n\n");
+	}
 }
 
 int evaluate(const void *boarddata, int me)
 {
 	const char *board = boarddata;
-	int score;
-	
-	score = eval_heuristic(board, me);
+	int not_me = 3 - me;
+	int i, j, c, score = 0;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			c = a(board, i, j);
+			if (c == me) {
+				score += heuristic[i][j];
+				score++;
+			}
+			else if (c == not_me) {
+				score -= heuristic[i][j];
+				score++;
+			}
+		}
+	}
 	return score;
 }
 
@@ -152,13 +173,27 @@ bool make_move(void *boarddata, const void *movedata, int me)
 	char *board = boarddata;
 	const char *move = movedata;
 	int x, y;
-	
+
 	x = move[0] - '0';
 	y = move[1] - '0';
 
 	if (x == -1 && y == -1) 
 		return true;
 	return valid_move(board, x, y, me, true);
+}
+
+static int count_pieces(const void *boarddata, int me)
+{
+	const char *board = boarddata;
+	int i, j, count = 0;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			if (a(board, i, j) == me)
+				count++;
+		}
+	}
+	return count;
 }
 
 static bool valid_move(char *board, int x, int y, int me, bool domove)
