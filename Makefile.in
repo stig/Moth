@@ -2,7 +2,7 @@
 # Do we have glut?
 ifeq ($(cfg__glut), 1)
   mains		:= moth.c gmoth.c
-  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a -libglut -lm
+  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a -lglut -lm
 else
   mains		:= moth.c
   ignore-files	:= gmoth.c
