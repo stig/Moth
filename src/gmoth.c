@@ -179,9 +179,6 @@ static void gameover(struct reversi_state *board)
                 printf("Player %d %s\n\n", player, 
                         score > 0 ?  "won" : "lost");
         }
-
-        ggtl_free(game);
-        exit(EXIT_SUCCESS);
 }
 
 
