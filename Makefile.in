@@ -1,5 +1,5 @@
 mains	:= moth.c
-libs	:= $(objroot)/ggtl/libggtl.a
+libs	:= $(objroot)/ggtl/libggtl.a $(objroot)/yalla/libyalla.a
 
 include $(makefiles)/programs.mk
 include $(makefiles)/install-programs.mk
