@@ -124,7 +124,7 @@ struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 		}
 
 		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
-		printf("Chose action (00-77|ENTER|undo|rate|save|load): ");
+		printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
 		fflush(stdout);
 		getline(move, sizeof move);
 
@@ -137,6 +137,9 @@ struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
                 else if (!strncmp(move, "rate", 4)) {
                         printf("minimax value: %d\n\n", ggtl_rate_move(game));
                         board = NULL;
+                }
+                else if (!strncmp(move, "redisp", 6)) {
+                        board = ggtl_peek_state(game);
                 }
 		else if (!strncmp(move, "save", 4)) {
 			printf("Saving game, need a name: "); fflush(stdout);
