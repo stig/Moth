@@ -6,7 +6,7 @@
 
 /* prototype for callbacks */
 bool end_of_game(void *boarddata, int me);
-nodeptr find_moves(void *boarddata, nodeptr *availmoves, int me);
+int find_moves(struct ggtl *game, void *boarddata, int me);
 bool make_move(void *boarddata, void *movedata, int me);
 int evaluate(void *boarddata, int me);
 
@@ -41,8 +41,8 @@ int main(int argc, char **argv)
 	board[3][4] = board[4][3] = 1;
 	board[3][3] = board[4][4] = 2;
 
-	game = ggtl_new(board, sizeof board, 2);
-	ggtl_add_callbacks(game, end_of_game, find_moves, make_move, evaluate);
+	game = ggtl_init(board, sizeof board, 2);
+	ggtl_callbacks(game, end_of_game, find_moves, make_move, evaluate);
 
 	if (argc > 1) {
 		ply1 = atoi(argv[1]);
@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 		ply2 = atoi(argv[2]);
 	}
 	mainloop(game, ply1, ply2);
+	ggtl_free(game);
 
 	return 0;
 }
@@ -62,7 +63,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 	bool show;
 	int tmp, maxply, player;
 
-	board = ggtl_peek_current_state(game);
+	board = ggtl_current_state(game);
 	do {
 		player = ggtl_player_turn(game); 
 		if (player == 1) {
@@ -99,7 +100,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			show = true;
                 }
 
-                board = ggtl_peek_current_state(game);
+                board = ggtl_current_state(game);
                 if (show == true) {
                         display(board);
                 }
@@ -166,34 +167,31 @@ int evaluate(void *boarddata, int me)
 }
 
 
-nodeptr find_moves(void *boarddata, nodeptr *availmoves, int me)
+int  find_moves(struct ggtl *game, void *boarddata, int me)
 {
 	nodeptr tmp, movelist = NULL;
 	char *board = boarddata;
-	char *mv, i, j;
+	char mv[2], i, j, cnt;
 	
+	cnt = 0;
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			if (valid_move(board, i, j, me, false)) {
-				tmp = sll_pop(availmoves); 
-				assert(tmp != NULL); 
-				mv = sll_peek(tmp); 
-				assert(mv != NULL);
 				mv[0] = i + '0'; 
 				mv[1] = j + '0'; 
-				sll_push(&movelist, tmp); 
+				ggtl_add_move(game, mv);
+				cnt++;
 			}
 		}
 	}
 
-	if (!movelist) {
-		tmp = sll_pop(availmoves);
-		mv = sll_peek(tmp);
+	if (!cnt) {
 		mv[0] = mv[1] = -1 + '0';
-		sll_push(&movelist, tmp);
+		ggtl_add_move(game, mv);
+		cnt++;
 	}
 
-	return movelist;
+	return cnt;
 }
 
 bool end_of_game(void *boarddata, int me)
