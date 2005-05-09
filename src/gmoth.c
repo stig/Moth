@@ -167,17 +167,14 @@ static void gameover(struct reversi_state *board)
 	int score = ggtl_eval(game);
 	int player = board->player;
 
-	reversi_state_draw(board);
-
-	if (score > 0) {
-		printf("Player %d won, with a margin of %d\n\n", player, score);
-	}
-	else if (score < 0) {
-		printf("Player %d won, with a margin of %d\n\n", player, -score);
-	}
-	else {
+	if (!score) {
 		puts("The game ended in a draw\n\n");
 	}
+	else {
+		printf("Player %d %s\n\n", player, 
+			score > 0 ?  "won" : "lost");
+	}
+
 	ggtl_free(game);
 	exit(EXIT_SUCCESS);
 }
@@ -197,9 +194,9 @@ static void mydisplay(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
+	reversi_state_draw(board);
 	if (ggtl_game_over(game)) 
 		gameover(board);
-	reversi_state_draw(board);
 
 	drawgrid(width, height);
 	drawstate(board, width, height);
