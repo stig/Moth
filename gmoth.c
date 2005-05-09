@@ -205,7 +205,7 @@ static void gameover(const struct ggtl_pos *board)
 
 static void mydisplay(void)
 {
-	const struct ggtl_pos *board = ggtl_peek_state(game);
+	const struct ggtl_pos *board = ggtl_peek_pos(game);
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
 

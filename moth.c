@@ -79,13 +79,13 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 	const struct ggtl_pos *board;
 	int score;
 
-	board = ggtl_peek_state(game);
+	board = ggtl_peek_pos(game);
 	for (;;) {
 		if (board) {
 			display(board);
 		}
 
-		board = ggtl_peek_state(game);
+		board = ggtl_peek_pos(game);
 		if (end_of_game(board)) {
 			break;
 		}
@@ -120,7 +120,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
                         board = NULL;
                 }
                 else if (!strncmp(move, "redisp", 6)) {
-                        board = ggtl_peek_state(game);
+                        board = ggtl_peek_pos(game);
                 }
 		else if (!strncmp(move, "save", 4)) {
 			printf("Saving game, need a name: "); fflush(stdout);
