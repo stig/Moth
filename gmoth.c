@@ -262,8 +262,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	ply1 = 30;
-	ply2 = 30;
+	ply1 = 1;
+	ply2 = 1;
 	/* difficulty level for player 1 */
 	if (argc > 1) {
 		ply1 = atoi(argv[1]);

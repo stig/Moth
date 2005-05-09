@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 {
 	struct ggtl *game;
 	struct ggtl_state initial = {{{0}}, 1};
-	int ply1 = 30, ply2 = 30;
+	int ply1 = 1, ply2 = 1;
 
 	initial.b[3][4] = initial.b[4][3] = 1;
 	initial.b[3][3] = initial.b[4][4] = 2;
