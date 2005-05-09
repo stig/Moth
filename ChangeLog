@@ -2,6 +2,18 @@
 # arch-tag: automatic-ChangeLog--stig@brautaset.org--2004/moth--devo--1.1
 #
 
+2004-05-08 20:23:26 GMT	Stig Brautaset <stig@brautaset.org>	patch-5
+
+    Summary:
+      fix to commandline handling from Matthias Rustler
+    Revision:
+      moth--devo--1.1--patch-5
+
+
+    modified files:
+     ChangeLog THANKS libmoth.c
+
+
 2004-04-03 14:40:18 GMT	Stig Brautaset <stig@brautaset.org>	patch-4
 
     Summary:

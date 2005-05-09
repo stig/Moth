@@ -84,7 +84,7 @@ void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *le
 		exit(EXIT_SUCCESS);
 	}
 
-	if (!fixed) {
+	if (!*fixed) {
 		*level1 *= 10;
 		*level2 *= 10;
 	}
