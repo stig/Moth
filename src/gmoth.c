@@ -21,8 +21,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <GL/glut.h>
-#include "libmoth.h"
+#include <GLUT/glut.h>
+
+#include <ggtl/reversi.h>
 
 #define XRES 400
 #define YRES 400
@@ -37,14 +38,17 @@ int ply1, ply2, fixed;
  */
 static void mykeyboard(unsigned char key, int x, int y)
 {
+#if 0
 	struct ggtl *tmp;
 	char filename[] = "gmoth.savegame";
 	int ply = ggtl_get(game, GGTL_PLY_LAST);
 
 	if (ply < 1) 
 		ply = 4;
+#endif
 
 	switch(key) {
+#if 0
 		case 'l':
 		case 'L':
 			if ((tmp = resume(filename))) {
@@ -73,6 +77,7 @@ static void mykeyboard(unsigned char key, int x, int y)
 		case 'U':
 			(void)ggtl_undo(game);
 			break;
+#endif
 
 		case 'q': 
 		case 'Q':
@@ -95,27 +100,21 @@ static void mymouse(int button, int state, int x, int y)
 {
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
-	struct ggtl_pos *pos = ggtl_peek_pos(game);
+	struct reversi_state *pos = ggtl_peek_state(game);
 	int ply = pos->player == 1 ? ply1 : ply2;
 
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
-			struct ggtl_move *mv = ggtl_pop_move(game);
-			if (!mv)
-				mv = ensure_move();
+			struct reversi_move *mv;
 
-			mv->y = 7 - y / (height / 8);
-			mv->x = x / (width / 8);
-
-			if (!ggtl_move(game, mv))
-				ggtl_push_move(game, mv);
+                        mv = reversi_move_new(
+                          x / (width / 8), 
+                          7 - y / (height / 8)
+                        );
 		}
 			
 		if (button == GLUT_RIGHT_BUTTON) {
-			if (fixed)
-				(void)ggtl_alphabeta(game, ply);
-			else
-				(void)ggtl_alphabeta_iterative(game, ply);
+                        ggtl_ai_move(game);
 		}
 	}
 
@@ -169,7 +168,7 @@ static void drawgrid(int width, int height)
  * Draw a state; wizz through an array and draw discs in the correct
  * colour when needed.
  */
-static void drawstate(struct ggtl_pos *board, int width, int height)
+static void drawstate(struct reversi_state *board, int width, int height)
 {
 	int i, j, c;
 	int x_step = width / 8;
@@ -177,7 +176,7 @@ static void drawstate(struct ggtl_pos *board, int width, int height)
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			c = board->b[i][j];
+			c = board->board[i][j];
 			if (c) {
 				if (c == 1) glColor3f(1.0, 1.0, 1.0);
 				else glColor3f(0.0, 0.0, 0.0);
@@ -189,12 +188,9 @@ static void drawstate(struct ggtl_pos *board, int width, int height)
 }
 
 
-static void gameover(struct ggtl_pos *board)
+static void gameover(struct reversi_state *board)
 {
-	int score;
-
-	score = count_pieces(board, 1);
-	score -= count_pieces(board, 2);
+	int score = ggtl_eval(game);
 
 	if (score > 0) {
 		printf("Player 1 won, with a margin of %d\n\n", score);
@@ -213,7 +209,7 @@ static void gameover(struct ggtl_pos *board)
 static void mydisplay(void)
 {
 	int ply;
-	struct ggtl_pos *board = ggtl_peek_pos(game);
+	struct reversi_state *board = ggtl_peek_state(game);
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
 
@@ -224,7 +220,7 @@ static void mydisplay(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
-	if (end_of_game(board)) 
+	if (ggtl_game_over(game)) 
 		gameover(board);
 
 	if (board)
@@ -240,7 +236,7 @@ static void mydisplay(void)
 
 int main(int argc, char **argv)
 {
-	struct ggtl_pos *pos, start = {NULL, {{0}}, 1};
+	struct reversi_state *pos;
 	int debug;
 
         glutInit(&argc, argv);
@@ -252,21 +248,16 @@ int main(int argc, char **argv)
         glutDisplayFunc(mydisplay);
         glutMouseFunc(mymouse);
 
-	greeting();
 	getopts(argc, argv, &debug, &fixed, &ply1, &ply2);
 
-	start.b[3][4] = start.b[4][3] = 1;
-	start.b[3][3] = start.b[4][4] = 2;
+        pos = reversi_state_new(8);
+	game = reversi_init(ggtl_new(), pos);
 
-	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-
-	pos = copy_pos(NULL, &start);
-	if (!ggtl_init(game, pos)) {
-		ggtl_free(game);
+	if (!game) {
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
 	}
-	ggtl_set(game, GGTL_DEBUG, debug);
+	ggtl_ai_trace(game, debug);
 
         glutMainLoop();
 	return 0;

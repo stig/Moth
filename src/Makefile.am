@@ -1,8 +1,5 @@
-bin_PROGRAMS	= moth c4
-
-if WITH_GLUT
-  bin_PROGRAMS	+= gmoth gc4
-endif
+bin_PROGRAMS	= moth gmoth
+LDFLAGS =  -framework GLUT -framework OpenGL -lobjc
 
 COMMON		= common.c common.h
 
