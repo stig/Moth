@@ -14,9 +14,9 @@
 
 
 /* prototype for callbacks */
-bool end_of_game(const void *boarddata, int me);
-int find_moves(struct ggtl *game, const void *boarddata, int me);
 bool make_move(void *boarddata, const void *movedata, int me);
+bool end_of_game(const void *boarddata, int me);
+void  find_moves(struct ggtl *game, const void *boarddata, int me);
 int evaluate(const void *boarddata, int me);
 
 static bool valid_move(char *board, int x, int y, int me, bool domove);
@@ -63,6 +63,7 @@ int main(int argc, char **argv)
 	greeting();
 
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
+	ggtl_memoptions(game, true, true, 2, 10);
 	if (!game || !ggtl_init(game, board, sizeof board, 2)) {
 		ggtl_free(game);
 		puts("sorry -- NO GAME FOR YOU!");
@@ -99,7 +100,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 	char move[128] = {0};
 	const void *board;
 	bool show = true;
-	int c, score, maxply, player;
+	int score, maxply, player;
 
 	for (;;) {
                 board = ggtl_current_state(game);
@@ -119,7 +120,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 		}
 
 		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
-		printf("Chose action (00-77|ENTER|undo|eval|save|load): ");
+		printf("Chose action (00-77|ENTER|undo|rate|save|load): ");
 		fflush(stdout);
 		getline(move, sizeof move);
 
@@ -131,7 +132,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
                                 show = false;
                         }
                 }
-                else if (!strncmp(move, "eval", 4)) {
+                else if (!strncmp(move, "rate", 4)) {
                         printf("minimax value: %d\n\n", ggtl_rate_last(game, maxply));
                         show = false;
                 }
@@ -236,13 +237,13 @@ int evaluate(const void *boarddata, int me)
 	myscore = count_pieces(board, me);
 	notmyscore = count_pieces(board, not_me);
 #endif
-	if (!myscore) return GGTL_FITNESS_MIN;
-	if (!notmyscore) return GGTL_FITNESS_MAX;
+	if (!myscore) return GGTL_MIN;
+	if (!notmyscore) return GGTL_MAX;
 	return (myscore - notmyscore) * 2;
 }
 
 
-int find_moves(struct ggtl *game, const void *boarddata, int me)
+void find_moves(struct ggtl *game, const void *boarddata, int me)
 {
 	const char *board = boarddata;
 	char mv[2], i, j, cnt;
