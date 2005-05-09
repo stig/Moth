@@ -2,6 +2,18 @@
 # arch-tag: automatic-ChangeLog--stig@brautaset.org--2004/moth--devo--1.1
 #
 
+2004-04-03 14:40:18 GMT	Stig Brautaset <stig@brautaset.org>	patch-4
+
+    Summary:
+      options library interface change
+    Revision:
+      moth--devo--1.1--patch-4
+
+
+    modified files:
+     ChangeLog libmoth.c
+
+
 2004-02-14 23:36:43 GMT	Stig Brautaset <stig@brautaset.org>	patch-3
 
     Summary:

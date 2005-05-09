@@ -45,12 +45,12 @@ void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *le
 	struct opt *opts;
 	int help, longhelp, error;
 	struct opt_defs options[] = {
-		{"help", "h", opt_bool, "0",	"Print a short help message and exit"},
-		{"longhelp", "H", opt_bool, "0","Print help with default values and exit"},
-		{"debug", "d", opt_bool, "0",	"Print debug level messages"},
-		{"fixed", "f", opt_bool, "0",	"Fixed-depth search (turn off iterative deepening)"},
-		{"level1", "1", opt_int, "3",	"Depth of search (times 10ms for iterative deepening) -- player 1"},
-		{"level2", "2", opt_int, "3",	"Depth of search (times 10ms for iterative deepening) -- player 2"},
+		{"help", "h", 0, "0",	"Print a short help message and exit"},
+		{"longhelp", "H", 0, "0","Print help with default values and exit"},
+		{"debug", "d", 0, "0",	"Print debug level messages"},
+		{"fixed", "f", 0, "0",	"Fixed-depth search (turn off iterative deepening)"},
+		{"level1", "1", 1, "3",	"Depth of search (times 10ms for iterative deepening) -- player 1"},
+		{"level2", "2", 1, "3",	"Depth of search (times 10ms for iterative deepening) -- player 2"},
 		OPT_DEFS_END
 	};
 
@@ -60,18 +60,18 @@ void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *le
 		exit(EXIT_FAILURE);
 	}
 
-	if ((error = opt_parse(opts, argc, argv))) {
+	if ((error = opt_parse(opts, &argc, argv, 0))) {
 		fprintf(stderr, "Failure parsing options: %s\n", 
 				opt_strerror(error));
 		exit(EXIT_FAILURE);
 	}
 
-	error |= opt_val(opts, "help", &help);
-	error |= opt_val(opts, "longhelp", &longhelp);
-	error |= opt_val(opts, "debug", debug);
-	error |= opt_val(opts, "fixed", fixed);
-	error |= opt_val(opts, "level1", level1);
-	error |= opt_val(opts, "level2", level2);
+	error |= opt_val(opts, "help", "int", &help);
+	error |= opt_val(opts, "longhelp", "int", &longhelp);
+	error |= opt_val(opts, "debug", "int", debug);
+	error |= opt_val(opts, "fixed", "int", fixed);
+	error |= opt_val(opts, "level1", "str", level1);
+	error |= opt_val(opts, "level2", "str", level2);
 	if (error) {
 		fprintf(stderr, "Failure retrieving values. ");
 		fprintf(stderr, "Last error was: %s\n", opt_strerror(error));
