@@ -73,7 +73,7 @@ static void mymouse(int button, int state, int x, int y)
 {
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
-	struct reversi_state *pos = ggtl_peek_state(game);
+	void *moved = NULL;
 
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
@@ -83,15 +83,16 @@ static void mymouse(int button, int state, int x, int y)
                           x / (width / 8), 
                           7 - y / (height / 8)
                         );
-                        ggtl_move(game, mv);
+                        moved = ggtl_move(game, mv);
 		}
-			
-		if (button == GLUT_RIGHT_BUTTON) {
-                        ggtl_ai_move(game);
+		else if (button == GLUT_RIGHT_BUTTON) {
+			moved = ggtl_ai_move(game);
+		}
+
+		if (moved) { 
+			glutPostRedisplay();
 		}
 	}
-
-	glutPostRedisplay();
 }
 
 
@@ -198,7 +199,7 @@ static void mydisplay(void)
 
 	if (ggtl_game_over(game)) 
 		gameover(board);
-  /* reversi_state_draw(board); */
+	reversi_state_draw(board);
 
 	drawgrid(width, height);
 	drawstate(board, width, height);
