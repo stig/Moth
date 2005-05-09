@@ -6,6 +6,9 @@
 /* Define to 1 if you have the `ggtl' library (-lggtl). */
 #undef HAVE_LIBGGTL
 
+/* Define to 1 if you have the `glut' library (-lglut). */
+#undef HAVE_LIBGLUT
+
 /* Define to 1 if you have the `options' library (-loptions). */
 #undef HAVE_LIBOPTIONS
 

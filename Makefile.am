@@ -1,4 +1,3 @@
-bin_PROGRAMS		= moth 
-moth_SOURCES 		= src/moth.c src/libmoth.h src/libmoth.c
+SUBDIRS		= src
 
 EXTRA_DIST 		= ChangeLog THANKS README LICENCE

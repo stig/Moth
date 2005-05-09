@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
-#include <moth/libmoth.h>
+#include "libmoth.h"
 
 #define XRES 400
 #define YRES 400
