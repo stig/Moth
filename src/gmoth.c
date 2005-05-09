@@ -201,7 +201,6 @@ static void mydisplay(void)
         glClear(GL_COLOR_BUFFER_BIT);
         gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
-        reversi_state_draw(board);
         if (ggtl_game_over(game)) 
                 gameover(board);
 
