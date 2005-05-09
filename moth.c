@@ -111,11 +111,10 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
                 else if (!strncmp(move, "redisp", 6)) {
                         board = ggtl_peek_pos(game);
                 }
-#if 0
 		else if (!strncmp(move, "save", 4)) {
 			printf("Saving game, need a name: "); fflush(stdout);
 			getline(move, sizeof move);
-			if (ggtl_save(game, move))
+			if (!save(move, game))
 				puts("success");
 			else puts("failed");
 			board = NULL;
@@ -124,19 +123,17 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			struct ggtl *tmp;
 			printf("Loading game, need a name: "); fflush(stdout);
 			getline(move, sizeof move);
-			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-			if (move[0] && tmp && (board = ggtl_resume(tmp, move))) {
+			if (move[0] && (tmp = resume(move))) {
 				printf("loaded game from `%s'.", move);
 				ggtl_free(game);
 				game = tmp;
+				board = ggtl_peek_pos(game);
 			}
 			else {
 				printf("failed loading game from `%s'.", move);
-				ggtl_free(tmp);
 				board = NULL;
 			}
 		}
-#endif
                 else {
 			struct ggtl_move *mv;
 

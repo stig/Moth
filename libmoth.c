@@ -53,6 +53,150 @@ void greeting(void)
 }
 
 
+int save(char *fn, struct ggtl *g)
+{
+	FILE *fp;
+	int retval = 0;
+	
+	fp = fopen(fn, "w");
+	if (!fp) 
+		return -1;
+
+	if (ggtl_save(g, fp, write_pos, write_move)) {
+		puts("foo1");
+		retval = -1;
+	}
+
+	if (fclose(fp)) {
+		puts("foo2");
+		retval = -1;
+	}
+
+	return retval;
+}
+
+
+struct ggtl *resume(char *fn)
+{
+	FILE *fp;
+	struct ggtl *g;
+
+	fp = fopen(fn, "r");
+	if (!fp) 
+		return NULL;
+
+	g = ggtl_new(make_move, end_of_game, find_moves, evaluate);
+	if (!g) {
+		fclose(fp);
+		return NULL;
+	}
+
+	if (!ggtl_resume(g, fp, read_pos, read_move)) {
+		ggtl_free(g);
+		fclose(fp);
+		return NULL;
+	}
+
+	if (fclose(fp)) {
+		ggtl_free(g);
+		return NULL;
+	}
+
+	return g;
+}
+
+
+int write_move(FILE *fp, struct ggtl_move *mv)
+{
+	if (fprintf(fp, "x: %d, y: %d\n", mv->x, mv->y) < 0)
+		return -1;
+	return 0;
+}
+
+
+struct ggtl_move *read_move(FILE *fp)
+{
+	struct ggtl_move *mv;
+	int x, y;
+
+	if (fscanf(fp, "x: %d, y: %d\n", &x, &y) != 2)
+		return NULL;
+
+	mv = malloc(sizeof *mv);
+	if (!mv) 
+		return NULL;
+
+	mv->next = NULL;
+	mv->x = x;
+	mv->y = y;
+
+	return mv;
+}
+
+
+int write_pos(FILE *fp, struct ggtl_pos *pos)
+{
+	int i, j, player;
+
+	if (!pos)
+		return -1;
+	if (fprintf(fp, "player start: %d\n", pos->player) < 0)
+		return -1;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			player = pos->b[i][j];
+			if (fputc('0' + player, fp) == EOF)
+				return -1;
+
+		}
+		if (fputc('\n', fp) == EOF)
+			return -1;
+	}
+	if (fputc('\n', fp) == EOF)
+		return -1;
+	return 0;
+}
+
+
+struct ggtl_pos *read_pos(FILE *fp)
+{
+	int i, j, player;
+	struct ggtl_pos *pos; 
+	
+	if (fscanf(fp, "player start: %d\n", &player) != 1)
+		return NULL;
+
+	pos = malloc(sizeof *pos);
+	if (!pos) 
+		return NULL;
+	pos->next = NULL;
+	pos->player = player;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			player = fgetc(fp);
+			if (player == EOF) {
+				free(pos);
+				return NULL;
+			}
+
+			pos->b[i][j] = player - '0';
+		}
+		if (fgetc(fp) != '\n') {
+			free(pos);
+			return NULL;
+		}
+	}
+	if (fgetc(fp) != '\n') {
+		free(pos);
+		return NULL;
+	}
+
+	return pos;
+}
+
+
 /**
  * Copy a position. Use cached position if provided, else allocate the
  * necessary memory. Exit if the necessary memory cannot be allocated.
@@ -77,7 +221,7 @@ struct ggtl_pos *copy_pos(struct ggtl_pos *dst, struct ggtl_pos *src)
 struct ggtl_move *ensure_move(void)
 {
 	struct ggtl_move *pos;
-
+ 
 	pos = malloc(sizeof *pos);
 	if (!pos) 
 		exit(EXIT_FAILURE);

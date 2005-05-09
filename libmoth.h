@@ -36,6 +36,12 @@ struct ggtl_move {
 
 /* libmoth.c */
 void greeting(void);
+int save(char *fn, struct ggtl *g);
+struct ggtl *resume(char *fn);
+int write_move(FILE *fp, struct ggtl_move *mv);
+struct ggtl_move *read_move(FILE *fp);
+int write_pos(FILE *fp, struct ggtl_pos *pos);
+struct ggtl_pos *read_pos(FILE *fp);
 struct ggtl_pos *copy_pos(struct ggtl_pos *dst, struct ggtl_pos *src);
 struct ggtl_move *ensure_move(void);
 int evaluate(struct ggtl_pos *b);

@@ -45,35 +45,30 @@ static void mykeyboard(unsigned char key, int x, int y)
 		ply = 4;
 
 	switch(key) {
-#if 0
 		case 'l':
 		case 'L':
-			tmp = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-			if (tmp && ggtl_resume(tmp, filename)) {
+			if ((tmp = resume(filename))) {
 				printf("loaded game from `%s'.", filename);
 				ggtl_free(game);
 				game = tmp;
 			}
 			else {
 				printf("failed loading game from `%s'.", filename);
-				ggtl_free(tmp);
 			}
 			break;
-#endif
 
 		case 'r':
 		case 'R':
                         printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
 			break;
 
-#if 0
 		case 's':
 		case 'S':
-			if (ggtl_save(game, filename))
+			if (!save(filename, game))
 				puts("success");
 			else puts("failed");
 			break;
-#endif			
+
 		case 'u':
 		case 'U':
 			(void)ggtl_undo(game);
