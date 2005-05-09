@@ -86,6 +86,8 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 		printf("Chose action (00-77 / ENTER / undo / eval): ");
 		fflush(stdout);
 		scanf("%9[^\n]%*[^\n]", move); getchar();
+		move[0] -= '0';
+		move[1] -= '0';
 #endif
 		if (!strncmp(move, "undo", 4)) {
 			show = true;
@@ -102,7 +104,6 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
                         show = true;
                 }
 		else {
-			printf("trying alphabeta to ply %d ...\n", maxply);
 			if (ggtl_alphabeta(game, maxply))
 				show = true;
 			else 
@@ -154,6 +155,7 @@ int evaluate(const void *boarddata, int me)
 	int not_me = 3 - me;
 	int i, j, c, score = 0;
 
+#if 1
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			c = a(board, i, j);
@@ -167,6 +169,11 @@ int evaluate(const void *boarddata, int me)
 			}
 		}
 	}
+#else
+	score = count_pieces(board, me);
+	score -= count_pieces(board, not_me);
+#endif
+	
 	return score;
 }
 
@@ -180,8 +187,8 @@ int find_moves(struct ggtl *game, const void *boarddata, int me)
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			if (valid_move(board, i, j, me, false)) {
-				mv[0] = j + '0'; 
-				mv[1] = i + '0'; 
+				mv[0] = j; 
+				mv[1] = i; 
 				ggtl_add_move(game, mv);
 				cnt++;
 			}
@@ -189,7 +196,7 @@ int find_moves(struct ggtl *game, const void *boarddata, int me)
 	}
 
 	if (!cnt) {
-		mv[0] = mv[1] = -1 + '0';
+		mv[0] = mv[1] = -1;
 		ggtl_add_move(game, mv);
 		cnt++;
 	}
@@ -217,11 +224,16 @@ bool make_move(void *boarddata, const void *movedata, int me)
 {
 	char *board = boarddata;
 	const char *move = movedata;
-	int y = move[0] - '0';
-	int x = move[1] - '0';
+	int y = move[0];
+	int x = move[1];
 
+	/* null or pass move */
 	if (x == -1 && y == -1) 
 		return true;
+
+	if (x < 0 || x > 7 || y < 0 || y > 7) 
+		return false;
+
 	return valid_move(board, x, y, me, true);
 }
 
