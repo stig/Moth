@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <options/opt.h>
-#include <moth/libmoth.h>
+#include "libmoth.h"
 
 /* One global variable -- whether this should remain global or not is
  * uncertain -- I need to profile the code to know that. Intuitively it
