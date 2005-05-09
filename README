@@ -1,25 +1,34 @@
-moth -- my/mini othello
+Moth -- my/mini othello
 =======================
 
-`moth' is a small othello game written as a `proof of concept' around
-GGTL, the General Game-Tree Library. It really is fairly simple -- but
-still it supports unlimited undo, save to file / resume from file, human
-vs human, human vs computer and computer vs computer play. 
+Moth is an Othello game for the console by Stig Brautaset. It is
+written as a `proof of concept' for GGTL, the Generic Game-Tree
+Library. It is fairly simplistic, -- but some of the features include:
 
-The `AI' is nothing fancy, simply a straight minimax-search with
-alpha-beta pruning, as provided out-of-the-box by GGTL. It's fairly
-effective though.
+ o unlimited undo
+ o save to file / resume from file
+ o different modes of play: 
+   - human vs human
+   - human vs computer
+   - computer vs computer 
+ o various difficulty levels
 
-Difficult-levels can be specified on the commandline -- 0 to N, where N
-is a positive integer. N is only limited by how long you can be arsed to
-wait for it to move (and how much memory you have ;) ).
+The AI player is provided by GGTL. It use an Alpha-Beta algorithm
+with iterative deepening and naive move ordering (based on the
+previous searches).
+
+Difficult-levels can be specified on the commandline -- 0 to N,
+where N is a positive integer. N is only limited by how long you
+care to wait for Moth to move (and how much memory your machine
+has ;) ).
                                                                                                                                
-moth 3 3      # makes both players search to 3 ply (this is the default)
-moth 3 5      # makes player one search to 3 ply and player two to 5 ply 
-moth 5        # equivalent to `moth 5 3' since 3 is default setting
+moth 30 30    # both players get 30/100 seconds to find a move
+moth 30 50    # player 1 get 30/100 seconds; player 2 get 1/2 second
+moth 50       # equivalent to `moth 50 30' since 30 is default setting
 
-You can play either (or both) players, and you can change which one you 
-want to play as you go. Just hit enter will make moth pick a move as 
-best as it can, put in coordinates and you pick a move. 
+You can play either (or both) players, and you can change which
+one you want to play as you go. Just hit enter will make Moth
+pick a move as best as it can; put in coordinates and you pick a
+move. 
 
-`moth' is written by Stig Brautaset <stig@brautaset.org>
+# tag: Stig Brautaset Sat Apr  5 20:06:43 BST 2003

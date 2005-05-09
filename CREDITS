@@ -1,4 +1,0 @@
-
-Parts of the code for moth, particularly the function `valid_move' and
-the heuristic used for evaluation, is heavily inspired by code from
-GNOME Iagno by Ian Peters <ipeters@acm.org>. 
