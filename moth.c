@@ -76,7 +76,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
 	const struct ggtl_state *board;
-	int score, player;
+	int score;
 
 	board = ggtl_peek_state(game);
 	for (;;) {

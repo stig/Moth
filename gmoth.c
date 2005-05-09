@@ -208,7 +208,6 @@ static void mydisplay(void)
 	const struct ggtl_state *board = ggtl_peek_state(game);
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
-	int player;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
