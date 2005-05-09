@@ -19,8 +19,9 @@
  */
 
 #include <stdio.h>
-#include "moth/moth-common.h"
-#include "config-options.h"
+#include <stdlib.h>
+#include <config-options.h>
+#include <moth/libmoth.h>
 
 
 /* One global variable -- whether this should remain global or not is
@@ -52,13 +53,47 @@ void greeting(void)
 }
 
 
+/**
+ * Copy a position. Use cached position if provided, else allocate the
+ * necessary memory. Exit if the necessary memory cannot be allocated.
+ *
+ * @param dst where to copy the position (if non-NULL)
+ * @param src the position to copy
+ *
+ * @return A pointer to the copy of the position is returned.
+ */
+struct ggtl_pos *copy_pos(struct ggtl_pos *dst, struct ggtl_pos *src)
+{
+	if (!dst) {
+		dst = malloc(sizeof *dst);
+		if (!dst)
+			exit(EXIT_FAILURE);
+		dst->next = NULL;
+	}
+	return memcpy(dst, src, sizeof *src);
+}
+
+
+struct ggtl_move *ensure_move(void)
+{
+	struct ggtl_move *pos;
+
+	pos = malloc(sizeof *pos);
+	if (!pos) 
+		exit(EXIT_FAILURE);
+
+	pos->next = NULL;
+	return pos;
+}
+
+
 /* 
  * Evaluate a board position for the given player.
  * 
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int evaluate(const struct ggtl_pos *b)
+int evaluate(struct ggtl_pos *b)
 {
 	int c, i, j;
 	int me = b->player;
@@ -91,9 +126,9 @@ int evaluate(const struct ggtl_pos *b)
  * Find and add possible moves at this position to GGTL's internal
  * lists.
  */
-void find_moves(struct ggtl *game, const struct ggtl_pos *b)
+void find_moves(struct ggtl *game, struct ggtl_pos *b)
 {
-	struct ggtl_move mv;
+	struct ggtl_move *mv;
 	int me = b->player;
 	int i, j, cnt;
 	
@@ -101,18 +136,26 @@ void find_moves(struct ggtl *game, const struct ggtl_pos *b)
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			if (valid_move(b, i, j, me)) {
-				mv.x = i; 
-				mv.y = j; 
-				ggtl_add_move(game, &mv);
+				mv = ggtl_pop_move(game);
+				if (!mv) 
+					mv = ensure_move();
+
+				mv->x = i; 
+				mv->y = j; 
+				ggtl_add_move(game, mv);
 				cnt++;
 			}
 		}
 	}
 
 	if (!cnt) {
+		mv = ggtl_pop_move(game);
+		if (!mv) 
+			mv = ensure_move();
+
 		/* add a pass move */
-		mv.x = mv.y = -1;
-		ggtl_add_move(game, &mv);
+		mv->x = mv->y = -1;
+		ggtl_add_move(game, mv);
 	}
 }
 
@@ -121,7 +164,7 @@ void find_moves(struct ggtl *game, const struct ggtl_pos *b)
  * Return zero if the game has _not_ ended at this position (for the
  * current player), and non-zero if it has.
  */
-int end_of_game(const struct ggtl_pos *b)
+int end_of_game(struct ggtl_pos *b)
 {
 	int i, j;
 	int me = b->player;
@@ -140,70 +183,74 @@ int end_of_game(const struct ggtl_pos *b)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int make_move(struct ggtl_pos *b, const struct ggtl_move *m)
+struct ggtl_pos *make_move(struct ggtl *g, struct ggtl_pos *b, struct ggtl_move *m)
 {
 	int me = b->player;
 	int not_me = 3 - me;
 	int tx, ty, flipped = 0;
 	int x = m->x;
 	int y = m->y;
+	struct ggtl_pos *pos;
+
+	pos = ggtl_pop_pos(g);
+	pos = copy_pos(pos, b);
 
 	/* null or pass move */
 	if (x == -1 && y == -1) {
-		b->player = 3 - me;
-		return 1;
+		pos->player = 3 - me;
+		return pos;
 	}
 
 	if (x < 0 || x > 7 || y < 0 || y > 7) 
-		return 0;
+		return NULL;
 
 	/* slot must not already be occupied */
-	if (b->b[x][y] != 0)
-		return 0;
+	if (pos->b[x][y] != 0)
+		return NULL;
 
 	/* left */
-	for (tx = x - 1; tx >= 0 && b->b[tx][y] == not_me; tx--)
+	for (tx = x - 1; tx >= 0 && pos->b[tx][y] == not_me; tx--)
 		;
-	if (tx >= 0 && tx != x - 1 && b->b[tx][y] == me) {
+	if (tx >= 0 && tx != x - 1 && pos->b[tx][y] == me) {
 		tx = x - 1;
-		while (tx >= 0 && b->b[tx][y] == not_me) {
-			b->b[tx][y] = me;
+		while (tx >= 0 && pos->b[tx][y] == not_me) {
+			pos->b[tx][y] = me;
 			tx--;
 		}
 		flipped++;
 	}
 
 	/* right */
-	for (tx = x + 1; tx < 8 && b->b[tx][y] == not_me; tx++)
+	for (tx = x + 1; tx < 8 && pos->b[tx][y] == not_me; tx++)
 		;
-	if (tx < 8 && tx != x + 1 && b->b[tx][y] == me) {
+	if (tx < 8 && tx != x + 1 && pos->b[tx][y] == me) {
 		tx = x + 1;
-		while (tx < 8 && b->b[tx][y] == not_me) {
-			b->b[tx][y] = me;
+		while (tx < 8 && pos->b[tx][y] == not_me) {
+			pos->b[tx][y] = me;
 			tx++;
 		}
 		flipped++;
 	}
 
 	/* up */
-	for (ty = y - 1; ty >= 0 && b->b[x][ty] == not_me; ty--)
+	for (ty = y - 1; ty >= 0 && pos->b[x][ty] == not_me; ty--)
 		;
-	if (ty >= 0 && ty != y - 1 && b->b[x][ty] == me) {
+	if (ty >= 0 && ty != y - 1 && pos->b[x][ty] == me) {
 		ty = y - 1;
-		while (ty >= 0 && b->b[x][ty] == not_me) {
-			b->b[x][ty] = me;
+		while (ty >= 0 && pos->b[x][ty] == not_me) {
+			pos->b[x][ty] = me;
 			ty--;
 		}
 		flipped++;
 	}
 	
 	/* down */
-	for (ty = y + 1; ty < 8 && b->b[x][ty] == not_me; ty++)
+	for (ty = y + 1; ty < 8 && pos->b[x][ty] == not_me; ty++)
 		;
-	if (ty < 8 && ty != y + 1 && b->b[x][ty] == me) {
+	if (ty < 8 && ty != y + 1 && pos->b[x][ty] == me) {
 		ty = y + 1;
-		while (ty < 8 && b->b[x][ty] == not_me) {
-			b->b[x][ty] = me;
+		while (ty < 8 && pos->b[x][ty] == not_me) {
+			pos->b[x][ty] = me;
 			ty++;
 		}
 		flipped++;
@@ -212,15 +259,15 @@ int make_move(struct ggtl_pos *b, const struct ggtl_move *m)
 	/* up/left */
 	tx = x - 1;
 	ty = y - 1; 
-	while (tx >= 0 && ty >= 0 && b->b[tx][ty] == not_me) {
+	while (tx >= 0 && ty >= 0 && pos->b[tx][ty] == not_me) {
 		tx--; ty--;
 	}
 	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
-			b->b[tx][ty] == me) {
+			pos->b[tx][ty] == me) {
 		tx = x - 1;
 		ty = y - 1;
-		while (tx >= 0 && ty >= 0 && b->b[tx][ty] == not_me) {
-			b->b[tx][ty] = me;
+		while (tx >= 0 && ty >= 0 && pos->b[tx][ty] == not_me) {
+			pos->b[tx][ty] = me;
 			tx--; ty--;
 		}
 		flipped++;
@@ -229,15 +276,15 @@ int make_move(struct ggtl_pos *b, const struct ggtl_move *m)
 	/* up/right */
 	tx = x - 1;
 	ty = y + 1; 
-	while (tx >= 0 && ty < 8 && b->b[tx][ty] == not_me) {
+	while (tx >= 0 && ty < 8 && pos->b[tx][ty] == not_me) {
 		tx--; ty++;
 	}
 	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
-			b->b[tx][ty] == me) {
+			pos->b[tx][ty] == me) {
 		tx = x - 1;
 		ty = y + 1;
-		while (tx >= 0 && ty < 8 && b->b[tx][ty] == not_me) {
-			b->b[tx][ty] = me;
+		while (tx >= 0 && ty < 8 && pos->b[tx][ty] == not_me) {
+			pos->b[tx][ty] = me;
 			tx--; ty++;
 		}
 		flipped++;
@@ -246,15 +293,15 @@ int make_move(struct ggtl_pos *b, const struct ggtl_move *m)
 	/* down/right */
 	tx = x + 1;
 	ty = y + 1; 
-	while (tx < 8 && ty < 8 && b->b[tx][ty] == not_me) {
+	while (tx < 8 && ty < 8 && pos->b[tx][ty] == not_me) {
 		tx++; ty++;
 	}
 	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
-			b->b[tx][ty] == me) {
+			pos->b[tx][ty] == me) {
 		tx = x + 1;
 		ty = y + 1;
-		while (tx < 8 && ty < 8 && b->b[tx][ty] == not_me) {
-			b->b[tx][ty] = me;
+		while (tx < 8 && ty < 8 && pos->b[tx][ty] == not_me) {
+			pos->b[tx][ty] = me;
 			tx++; ty++;
 		}
 		flipped++;
@@ -263,26 +310,29 @@ int make_move(struct ggtl_pos *b, const struct ggtl_move *m)
 	/* down/left */
 	tx = x + 1;
 	ty = y - 1;
-	while (tx < 8 && ty >= 0 && b->b[tx][ty] == not_me) {
+	while (tx < 8 && ty >= 0 && pos->b[tx][ty] == not_me) {
 		tx++; ty--;
 	}
 	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
-			b->b[tx][ty] == me) {
+			pos->b[tx][ty] == me) {
 		tx = x + 1;
 		ty = y - 1;
-		while (tx < 8 && ty >= 0 && b->b[tx][ty] == not_me) {
-			b->b[tx][ty] = me;
+		while (tx < 8 && ty >= 0 && pos->b[tx][ty] == not_me) {
+			pos->b[tx][ty] = me;
 			tx++; ty--;
 		}
 		flipped++;
 	}
 
-	if (flipped == 0) 
-		return 0;
+	if (flipped == 0) {
+		free(pos);
+		return NULL;
+	}
 
-	b->b[x][y] = me;
-	b->player = 3 - me;
-	return 1;
+	pos->b[x][y] = me;
+	pos->player = 3 - me;
+
+	return pos;
 }
 
 
@@ -290,7 +340,7 @@ int make_move(struct ggtl_pos *b, const struct ggtl_move *m)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int valid_move(const struct ggtl_pos *b, int x, int y, int me)
+int valid_move(struct ggtl_pos *b, int x, int y, int me)
 {
 	int tx, ty;
 	int not_me = 3 - me;
@@ -371,7 +421,7 @@ int valid_move(const struct ggtl_pos *b, int x, int y, int me)
 /* 
  * Count the number of pieces on the board for the given player
  */
-int count_pieces(const struct ggtl_pos *b, int me)
+int count_pieces(struct ggtl_pos *b, int me)
 {
 	int i, j, count = 0;
 

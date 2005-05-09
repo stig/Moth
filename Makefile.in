@@ -1,16 +1,12 @@
 
-# Build gMoth by default, but have an option to turn it off
-ifeq ($(cfg__gmoth), 1)
-
-mains		:= moth.c gmoth.c
-libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/yalla/libyalla.a -lglut -lm
-
+# Do we have glut?
+ifeq ($(cfg__glut), 1)
+  mains		:= moth.c gmoth.c
+  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a -libglut -lm
 else
-
-mains		:= moth.c
-ignore-files	:= gmoth.c
-libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/yalla/libyalla.a 
-
+  mains		:= moth.c
+  ignore-files	:= gmoth.c
+  libs		:= $(objroot)/ggtl/libggtl.a $(objroot)/sl/libsl.a 
 endif
 
 include 	$(makefiles)/programs.mk

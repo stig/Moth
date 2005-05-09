@@ -21,15 +21,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "moth/moth-common.h"
-#include "config-include/config-options.h"
-
+#include <config-options.h>
+#include <moth/libmoth.h>
 
 
 /* 
  * Draw a game position on screen.
  */
-static void display(const struct ggtl_pos *b)
+static void display(struct ggtl_pos *b)
 {
 	int i, j, c;
 
@@ -76,8 +75,8 @@ static int getline(char *s, size_t size)
 static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
-	const struct ggtl_pos *board;
-	int score;
+	struct ggtl_pos *board;
+	int score, ply;
 
 	board = ggtl_peek_pos(game);
 	for (;;) {
@@ -93,16 +92,8 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 		puts("Action (00-77|ENTER|undo|rate|redisp|save|load)?");
 
 
-		if (board) {
-			if (board->player == 1) {
-				ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
-				ggtl_set(game, GGTL_PLY_LIM, ply1);
-			}
-			else {
-				ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
-				ggtl_set(game, GGTL_PLY_LIM, ply2);
-			}
-		}
+		if (board) 
+			ply = board->player == 1 ? ply1 : ply2;
 
 		getline(move, sizeof move);
 
@@ -114,14 +105,13 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
                 }
                 else if (!strncmp(move, "rate", 4)) {
 			int ply = ggtl_get(game, GGTL_PLY_LAST);
-			if (ply < 1) ply = ggtl_get(game, GGTL_PLY_LIM);
-
                         printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
                         board = NULL;
                 }
                 else if (!strncmp(move, "redisp", 6)) {
                         board = ggtl_peek_pos(game);
                 }
+#if 0
 		else if (!strncmp(move, "save", 4)) {
 			printf("Saving game, need a name: "); fflush(stdout);
 			getline(move, sizeof move);
@@ -146,18 +136,25 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 				board = NULL;
 			}
 		}
+#endif
                 else {
-			struct ggtl_move mv;
-			mv.x = move[1] - '0';
-			mv.y = move[0] - '0';
-			board = ggtl_move(game, &mv);
+			struct ggtl_move *mv;
+
+			mv = ggtl_pop_move(game);
+			if (!mv) 
+				mv = ensure_move();
+
+			mv->next = NULL;
+			mv->x = move[1] - '0';
+			mv->y = move[0] - '0';
+			board = ggtl_move(game, mv);
 			
 			if (!board) {
 
-#if cfg__moth_iterative
-				board = ggtl_alphabeta_iterative(game);
+#ifdef cfg__fixeddepth
+				board = ggtl_alphabeta_iterative(game, ply);
 #else
-				board = ggtl_alphabeta(game);
+				board = ggtl_alphabeta(game, ply);
 #endif
 				if (board) {
 					printf("searched to ply %d\n",
@@ -186,16 +183,17 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 int main(int argc, char **argv)
 {
 	struct ggtl *game;
-	struct ggtl_pos initial = {{{0}}, 1};
+	struct ggtl_pos *pos, start = {NULL, {{0}}, 1};
 	int ply1 = 1, ply2 = 1;
 
-	initial.b[3][4] = initial.b[4][3] = 1;
-	initial.b[3][3] = initial.b[4][4] = 2;
+	start.b[3][4] = start.b[4][3] = 1;
+	start.b[3][3] = start.b[4][4] = 2;
 
 	greeting();
 
+	pos = copy_pos(NULL, &start);
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	if (!ggtl_init(game, &initial, sizeof initial, sizeof(struct ggtl_move))) {
+	if (!ggtl_init(game, pos)) {
 		ggtl_free(game);
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;
