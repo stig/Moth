@@ -12,7 +12,7 @@ int evaluate(void *boarddata, int me);
 
 static bool valid_move(char *board, int x, int y, int me, bool domove);
 void display(const void *boarddata);
-void mainloop(struct ggtl *game, int maxply);
+void mainloop(struct ggtl *game, int ply1, int ply2);
 static int count_pieces(const void *boarddata, int me);
 
 #define a(A, B, C) A[(B) * 8 + (C)]
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 {
 	struct ggtl *game;
 	char board[8][8] = {{0}};
-	int ply = 3;
+	int ply1 = 3, ply2 = 3;
 
 	board[3][4] = board[4][3] = 1;
 	board[3][3] = board[4][4] = 2;
@@ -45,29 +45,42 @@ int main(int argc, char **argv)
 	ggtl_add_callbacks(game, end_of_game, find_moves, make_move, evaluate);
 
 	if (argc > 1) {
-		ply = atoi(argv[1]);
+		ply1 = atoi(argv[1]);
 	}
-	mainloop(game, ply);
+	if (argc > 2) {
+		ply2 = atoi(argv[2]);
+	}
+	mainloop(game, ply1, ply2);
 
 	return 0;
 }
 
-void mainloop(struct ggtl *game, int maxply)
+void mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[100];
 	void *board;
 	bool show;
-	int tmp;
+	int tmp, maxply, player;
 
 	board = ggtl_peek_current_state(game);
 	do {
-		show = true;
+		player = ggtl_player_turn(game); 
+		if (player == 1) {
+			maxply = ply1;
+		}
+		else {
+			maxply = ply2;
+		}
+
+		printf("\nplayer %d:\n", player);
+
 #if 0
 		fputs("Chose action (00-77 / undo / eval): ", stdout);
 		fflush(stdout);
 		fgets(move, sizeof move, stdin);
 #endif
 		if (!strncmp(move, "undo", 4)) {
+			show = true;
                         if (!ggtl_undo_move(game)) {
                                 puts("Error: no move to undo\n");
                                 show = false;
@@ -80,8 +93,10 @@ void mainloop(struct ggtl *game, int maxply)
                 else if (ggtl_make_move(game, move)) {
                         show = true;
                 }
-                else if (ggtl_alphabeta(game, maxply)) {
-                        show = true;
+                else { 
+			printf("maximum ply = %d\n", maxply);
+			ggtl_alphabeta(game, maxply);
+			show = true;
                 }
 
                 board = ggtl_peek_current_state(game);
