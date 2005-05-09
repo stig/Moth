@@ -29,7 +29,7 @@
 /* prototype for callbacks */
 int make_move(void *boarddata, const void *movedata, int me);
 int end_of_game(const void *boarddata, int me);
-void  find_moves(struct ggtl *game, const void *boarddata, int me);
+void find_moves(struct ggtl *game, const void *boarddata, int me);
 int evaluate(const void *boarddata, int me);
 
 static int valid_move(char *board, int x, int y, int me, int domove);
@@ -277,10 +277,7 @@ void find_moves(struct ggtl *game, const void *boarddata, int me)
 	if (!cnt) {
 		mv[0] = mv[1] = -1;
 		ggtl_add_move(game, mv);
-		cnt++;
 	}
-
-	return cnt;
 }
 
 
