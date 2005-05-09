@@ -42,7 +42,7 @@ static void display(const struct ggtl_state *b)
 		for (j = 0; j < 8; j++) {
 			c = b->b[i][j];
 			if (c == 1)
-				printf(" o |");
+				printf(" - |");
 			else if (c == 2) 
 				printf(" X |");
 			else 
@@ -51,10 +51,6 @@ static void display(const struct ggtl_state *b)
 		puts("\n  +---+---+---+---+---+---+---+---+");
 
 	}
-	printf("\nplayer %d (%c)\n", b->player, b->player==1?'o':'X');
-	printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
-	fflush(stdout);
-
 }
 
 
@@ -92,6 +88,10 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 		if (end_of_game(board)) {
 			break;
 		}
+		printf("\nplayer %d (%c)\n", board->player, board->player==1?'-':'X');
+		printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
+		fflush(stdout);
+
 
 		if (board) {
 			if (board->player == 1) {
