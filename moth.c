@@ -108,7 +108,10 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
                         }
                 }
                 else if (!strncmp(move, "rate", 4)) {
-                        printf("minimax value: %d\n\n", ggtl_rate_move(game));
+			int ply = ggtl_get(game, GGTL_PLY_LAST);
+			if (ply < 1) ply = ggtl_get(game, GGTL_PLY_LIM);
+
+                        printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
                         board = NULL;
                 }
                 else if (!strncmp(move, "redisp", 6)) {
@@ -145,6 +148,10 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			
 			if (!board) {
 				board = ggtl_alphabeta_iterative(game);
+				if (board) {
+					printf("searched to ply %d\n",
+						ggtl_get(game, GGTL_PLY_LAST));
+				}
 			}
 		}
 	} 

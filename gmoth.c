@@ -39,6 +39,10 @@ static void mykeyboard(unsigned char key, int x, int y)
 {
 	struct ggtl *tmp;
 	char filename[] = "gmoth.savegame";
+	int ply = ggtl_get(game, GGTL_PLY_LAST);
+
+	if (ply < 1) 
+		ply = ggtl_get(game, GGTL_PLY_LIM);
 
 	switch(key) {
 		case 'l':
@@ -57,7 +61,7 @@ static void mykeyboard(unsigned char key, int x, int y)
 
 		case 'r':
 		case 'R':
-                        printf("minimax value: %d\n\n", ggtl_rate_move(game));
+                        printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
 			break;
 
 		case 's':
@@ -237,7 +241,6 @@ static void mydisplay(void)
 int main(int argc, char **argv)
 {
 	char board[8][8] = {{0}};
-	int ply1 = 30, ply2 = 30;
 
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -259,6 +262,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	ply1 = 30;
+	ply2 = 30;
 	/* difficulty level for player 1 */
 	if (argc > 1) {
 		ply1 = atoi(argv[1]);
