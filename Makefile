@@ -4,7 +4,7 @@ EXECUTABLE = moth
 SOURCES = moth.c
 OBJS = moth.o
 
-CFLAGS = -W -Wall -O2 -ansi -pedantic
+CFLAGS = -W -Wall -O2 -g -ansi -pedantic
 LDFLAGS = -lggtl
 
 COMPILE = $(CC) $(CFLAGS)

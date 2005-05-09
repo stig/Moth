@@ -38,8 +38,8 @@ int main(int argc, char **argv)
 	char board[8][8] = {{0}};
 	int ply = 3;
 
-	board[3][3] = board[4][4] = 1;
-	board[3][4] = board[4][3] = 2;
+	board[3][4] = board[4][3] = 1;
+	board[3][3] = board[4][4] = 2;
 
 	game = ggtl_new(board, sizeof board, 2);
 	ggtl_add_callbacks(game, end_of_game, find_moves, make_move, evaluate);
@@ -300,7 +300,7 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
 		tx--; ty--;
 	}
-	if (tx >= 0 && ty >= 0 && ty != y - 1 && tx != x - 1 && 
+	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
 			a(board, tx, ty) == me) {
 		if (domove == false)
 			return true;
@@ -320,7 +320,7 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
 		tx--; ty++;
 	}
-	if (tx >= 0 && ty < 8 && ty != y - 1 && tx != x + 1 && 
+	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
 			a(board, tx, ty) == me) {
 		if (domove == false)
 			return true;
@@ -340,7 +340,7 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
 		tx++; ty++;
 	}
-	if (tx < 8 && ty < 8 && ty != y + 1 && tx != x + 1 && 
+	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
 			a(board, tx, ty) == me) {
 		if (domove == false)
 			return true;
@@ -360,7 +360,7 @@ static bool valid_move(char *board, int x, int y, int me, bool domove)
 	while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
 		tx++; ty--;
 	}
-	if (tx < 8 && ty >= 0 && ty != y - 1 && tx != x + 1 && 
+	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
 			a(board, tx, ty) == me) {
 		if (domove == false)
 			return true;
