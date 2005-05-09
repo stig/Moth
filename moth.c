@@ -12,7 +12,7 @@ int evaluate(const void *boarddata, int me);
 
 static bool valid_move(char *board, int x, int y, int me, bool domove);
 void display(const void *boarddata);
-void mainloop(struct ggtl *game, int ply1, int ply2);
+void mainloop(struct ggtl *game, int ply1, int ply2, bool interactive);
 static int count_pieces(const void *boarddata, int me);
 
 #define a(A, B, C) A[(B) * 8 + (C)]
@@ -50,13 +50,14 @@ int main(int argc, char **argv)
 	if (argc > 2) {
 		ply2 = atoi(argv[2]);
 	}
-	mainloop(game, ply1, ply2);
+
+	mainloop(game, ply1, ply2, false);
 	ggtl_free(game);
 
 	return 0;
 }
 
-void mainloop(struct ggtl *game, int ply1, int ply2)
+void mainloop(struct ggtl *game, int ply1, int ply2, bool interactive)
 {	
 	char move[10] = {0};
 	const void *board;
@@ -81,14 +82,15 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 		}
 
 		printf("\nplayer %d (%c),\n", player, player==1?'-':'#');
+		
+		if (interactive) {
+			printf("Chose action (00-77 / ENTER / undo / eval): ");
+			fflush(stdout);
+			scanf("%9[^\n]%*[^\n]", move); getchar();
+			move[0] -= '0';
+			move[1] -= '0';
+		}
 
-#if 1
-		printf("Chose action (00-77 / ENTER / undo / eval): ");
-		fflush(stdout);
-		scanf("%9[^\n]%*[^\n]", move); getchar();
-		move[0] -= '0';
-		move[1] -= '0';
-#endif
 		if (!strncmp(move, "undo", 4)) {
 			show = true;
                         if (!ggtl_undo_move(game)) {
