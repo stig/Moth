@@ -19,6 +19,7 @@
  */
 
 #include <ggtl/ggtl.h>
+#include "common.h"
 
 #ifndef connect4__libc4_h
 #define connect4__libc4_h
@@ -42,7 +43,6 @@ struct ggtl_move {
 
 
 /* libc4.c */
-void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *level2);
 int save(char *fn, struct ggtl *g);
 struct ggtl *resume(char *fn);
 int write_move(FILE *fp, struct ggtl_move *mv);

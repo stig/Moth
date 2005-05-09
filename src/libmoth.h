@@ -22,6 +22,7 @@
 #define MOTH__MOTH_COMMON_H 1
 
 #include <ggtl/ggtl.h>
+#include "common.h"
 
 struct ggtl_pos {
 	struct ggtl_pos *next;
@@ -38,7 +39,6 @@ extern struct opt_defs options[];
 
 
 /* libmoth.c */
-void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *level2);
 void greeting(void);
 int save(char *fn, struct ggtl *g);
 struct ggtl *resume(char *fn);
