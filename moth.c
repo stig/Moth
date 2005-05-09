@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "moth/moth-common.h"
+#include "config-include/config-options.h"
 
 
 
@@ -76,7 +77,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
 	const struct ggtl_state *board;
-	int score, player;
+	int score;
 
 	board = ggtl_peek_state(game);
 	for (;;) {
@@ -89,16 +90,17 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			break;
 		}
 		printf("\nplayer %d (%c)\n", board->player, board->player==1?'-':'X');
-		printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
-		fflush(stdout);
+		puts("Action (00-77|ENTER|undo|rate|redisp|save|load)?");
 
 
 		if (board) {
 			if (board->player == 1) {
 				ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
+				ggtl_set(game, GGTL_PLY_LIM, ply1);
 			}
 			else {
 				ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
+				ggtl_set(game, GGTL_PLY_LIM, ply2);
 			}
 		}
 
@@ -151,7 +153,12 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			board = ggtl_move(game, &mv);
 			
 			if (!board) {
+
+#if cfg__moth_iterative
 				board = ggtl_alphabeta_iterative(game);
+#else
+				board = ggtl_alphabeta(game);
+#endif
 				if (board) {
 					printf("searched to ply %d\n",
 						ggtl_get(game, GGTL_PLY_LAST));

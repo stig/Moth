@@ -4,3 +4,7 @@ string  moth-bug-email	moth-bugs@brautaset.org
 binary	gmoth		yes
 	Whether to build the graphical frontend (requires glut).
 	The default is yes.
+
+binary	moth-iterative	yes
+	Use an iterative deepening search instead of a
+	fixed-depth search.
