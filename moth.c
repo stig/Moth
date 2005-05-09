@@ -1,3 +1,10 @@
+/* 
+ * moth -- my/mini Othello
+ * Copyright (C) 2003 Stig Brautaset
+ *
+ * This software is released under the GNU GPL.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

@@ -1,0 +1,14 @@
+Copyright (C) 2003 Stig Brautaset
+
+moth -- my/mini othello
+=======================
+
+`moth' is a small othello game written as a `proof of concept' around
+GGTL, the General Game-Tree Library. It really is fairly simple -- but
+still it supports unlimited undo, save to file / resume from file, human
+vs human, human vs computer and computer vs computer play. 
+
+The `AI' is nothing fancy, simply a straight minimax-search with
+alpha-beta pruning, as provided out-of-the-box by GGTL. It's fairly
+effective though.
+
