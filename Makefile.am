@@ -1,3 +1,6 @@
-SUBDIRS		= src
+bin_PROGRAMS	= gmoth
+LDFLAGS =  -framework GLUT -framework OpenGL -lobjc
 
-EXTRA_DIST 		= ChangeLog THANKS README LICENCE
+gmoth_SOURCES	= gmoth.c 
+
+EXTRA_DIST 		= ChangeLog THANKS 
