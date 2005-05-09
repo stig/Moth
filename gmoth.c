@@ -18,11 +18,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <assert.h>
-#include <math.h>
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <GLUT/glut.h>
+#include <assert.h>
+#include <math.h>
+
+#if HAVE_GL_GLUT_H
+#include <GL/glut.h>
+#elif HAVE_GLUT_GLUT_H
+#include <GLUT/glut.h>  /* Mac OS-X */
+#endif
 
 #include <options/opt.h>
 #include <ggtl/reversi.h>

@@ -3,6 +3,12 @@
 /* Define to 1 if you have the <ggtl/core.h> header file. */
 #undef HAVE_GGTL_CORE_H
 
+/* Define to 1 if you have the <GLUT/glut.h> header file. */
+#undef HAVE_GLUT_GLUT_H
+
+/* Define to 1 if you have the <GL/glut.h> header file. */
+#undef HAVE_GL_GLUT_H
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -68,9 +74,3 @@
 
 /* Version number of package */
 #undef VERSION
-
-/* Define to empty if `const' does not conform to ANSI C. */
-#undef const
-
-/* Define to `unsigned' if <sys/types.h> does not define. */
-#undef size_t
