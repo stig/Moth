@@ -89,8 +89,7 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			break;
 		}
 		printf("\nplayer %d (%c)\n", board->player, board->player==1?'-':'X');
-		printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
-		fflush(stdout);
+		puts("Action (00-77|ENTER|undo|rate|redisp|save|load)?");
 
 
 		if (board) {
