@@ -5,9 +5,5 @@ First, I'd like to offer a big "THANK YOU" to my supervisor,
 Dimitris Parapadakis <parapadd@wmin.ac.uk>, who helped me keep
 this project on the right track.
 
-Parts of the code (particularly the functions valid_move() and
-make_move(), and the heuristic used for evaluation) is inspired
-by code from GNOME Iagno by Ian Peters <ipeters@acm.org>.
-
 Thanks to Matthias Rustler for reporting a bug in the option
 parsing code.
