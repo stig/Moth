@@ -28,9 +28,8 @@
 /* 
  * Draw a game position on screen.
  */
-static void display(const void *boarddata)
+static void display(const struct ggtl_state *b)
 {
-	const char *board = boarddata;
 	int i, j, c;
 
 	printf("\n   ");
@@ -41,15 +40,21 @@ static void display(const void *boarddata)
 	for (i = 0; i < 8; i++) {
 		printf("%d |", i);
 		for (j = 0; j < 8; j++) {
-			c = a(board, i, j);
-			if (c != 0)
-				printf(" %c |", c==1?'-':'#');
+			c = b->b[i][j];
+			if (c == 1)
+				printf(" o |");
+			else if (c == 2) 
+				printf(" X |");
 			else 
 				printf("   |");
 		}
 		puts("\n  +---+---+---+---+---+---+---+---+");
 
 	}
+	printf("\nplayer %d (%c)\n", b->player, b->player==1?'o':'X');
+	printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
+	fflush(stdout);
+
 }
 
 
@@ -74,7 +79,7 @@ static int getline(char *s, size_t size)
 static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
-	const void *board;
+	const struct ggtl_state *board;
 	int score, player;
 
 	board = ggtl_peek_state(game);
@@ -84,21 +89,19 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 		}
 
 		board = ggtl_peek_state(game);
-		if (end_of_game(board, 1) && end_of_game(board, 2)) {
+		if (end_of_game(board)) {
 			break;
 		}
 
-		player = ggtl_get(game, GGTL_PLAYER_TURN); 
-		if (player == 1) {
-			ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
-		}
-		else {
-			ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
+		if (board) {
+			if (board->player == 1) {
+				ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
+			}
+			else {
+				ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
+			}
 		}
 
-		printf("\nplayer %d (%c)\n", player, player==1?'-':'#');
-		printf("Chose action (00-77|ENTER|undo|rate|redisp|save|load): ");
-		fflush(stdout);
 		getline(move, sizeof move);
 
 		if (!strncmp(move, "undo", 4)) {
@@ -142,9 +145,10 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			}
 		}
                 else {
-			move[0] -= '0';
-			move[1] -= '0';
-			board = ggtl_move(game, move);
+			struct ggtl_move mv;
+			mv.x = move[1] - '0';
+			mv.y = move[0] - '0';
+			board = ggtl_move(game, &mv);
 			
 			if (!board) {
 				board = ggtl_alphabeta_iterative(game);
@@ -175,16 +179,16 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 int main(int argc, char **argv)
 {
 	struct ggtl *game;
-	char board[8][8] = {{0}};
+	struct ggtl_state initial = {{{0}}, 1};
 	int ply1 = 30, ply2 = 30;
 
-	board[3][4] = board[4][3] = 1;
-	board[3][3] = board[4][4] = 2;
+	initial.b[3][4] = initial.b[4][3] = 1;
+	initial.b[3][3] = initial.b[4][4] = 2;
 
 	greeting();
 
 	game = ggtl_new(make_move, end_of_game, find_moves, evaluate);
-	if (!ggtl_init(game, board, sizeof board, 2)) {
+	if (!ggtl_init(game, &initial, sizeof initial, sizeof(struct ggtl_move))) {
 		ggtl_free(game);
 		puts("sorry -- NO GAME FOR YOU!");
 		return EXIT_FAILURE;

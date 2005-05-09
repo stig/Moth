@@ -23,10 +23,14 @@
 
 #include "ggtl/ggtl.h"
 
-/*
- * Used to simulate multi-dimensional array for a one-dimensional one
- */
-#define a(A, B, C) A[(B) * 8 + (C)]
+struct ggtl_state {
+	int b[8][8];
+	int player;
+};
+
+struct ggtl_move {
+	int x, y;
+};
 
 /* begin prototype section */
 /* 
@@ -41,41 +45,41 @@ void greeting(void);
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int evaluate(const void *boarddata, int me);
+int evaluate(const struct ggtl_state *b);
 
 
 /* 
  * Find and add possible moves at this position to GGTL's internal
  * lists.
  */
-void find_moves(struct ggtl *game, const void *boarddata, int me);
+void find_moves(struct ggtl *game, const struct ggtl_state *b);
 
 
 /* 
  * Return zero if the game has _not_ ended at this position (for the
  * current player), and non-zero if it has.
  */
-int end_of_game(const void *boarddata, int me);
+int end_of_game(const struct ggtl_state *b);
 
 
 /* 
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int make_move(void *boarddata, const void *movedata, int me);
+int make_move(struct ggtl_state *b, const struct ggtl_move *m);
 
 
 /* 
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int valid_move(const char *board, int x, int y, int me);
+int valid_move(const struct ggtl_state *b, int x, int y, int me);
 
 
 /* 
  * Count the number of pieces on the board for the given player
  */
-int count_pieces(const void *boarddata, int me);
+int count_pieces(const struct ggtl_state *b, int me);
 
 
 /* end prototype section */

@@ -58,17 +58,17 @@ void greeting(void)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int evaluate(const void *boarddata, int me)
+int evaluate(const struct ggtl_state *b)
 {
-	const char *board = boarddata;
 	int c, i, j;
+	int me = b->player;
 	int not_me = 3 - me;
 	int myscore = 0, notmyscore = 0;
 
 #if 1
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			c = a(board, i, j);
+			c = b->b[i][j];
 			if (c == me) {
 				myscore += heuristic[i][j];
 			}
@@ -91,27 +91,28 @@ int evaluate(const void *boarddata, int me)
  * Find and add possible moves at this position to GGTL's internal
  * lists.
  */
-void find_moves(struct ggtl *game, const void *boarddata, int me)
+void find_moves(struct ggtl *game, const struct ggtl_state *b)
 {
-	const char *board = boarddata;
-	char mv[2];
+	struct ggtl_move mv;
+	int me = b->player;
 	int i, j, cnt;
 	
 	cnt = 0;
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			if (valid_move(board, i, j, me)) {
-				mv[0] = (char)j; 
-				mv[1] = (char)i; 
-				ggtl_add_move(game, mv);
+			if (valid_move(b, i, j, me)) {
+				mv.x = i; 
+				mv.y = j; 
+				ggtl_add_move(game, &mv);
 				cnt++;
 			}
 		}
 	}
 
 	if (!cnt) {
-		mv[0] = mv[1] = -1;
-		ggtl_add_move(game, mv);
+		/* add a pass move */
+		mv.x = mv.y = -1;
+		ggtl_add_move(game, &mv);
 	}
 }
 
@@ -120,16 +121,14 @@ void find_moves(struct ggtl *game, const void *boarddata, int me)
  * Return zero if the game has _not_ ended at this position (for the
  * current player), and non-zero if it has.
  */
-int end_of_game(const void *boarddata, int me)
+int end_of_game(const struct ggtl_state *b)
 {
-	const char *board = boarddata;
-	int i, j, not_me = 3 - me;
+	int i, j;
+	int me = b->player;
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			if (valid_move(board, i, j, me))
-				return 0;
-			if (valid_move(board, i, j, not_me))
+			if (valid_move(b, i, j, me))
 				return 0;
 		}
 	}
@@ -141,69 +140,70 @@ int end_of_game(const void *boarddata, int me)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int make_move(void *boarddata, const void *movedata, int me)
+int make_move(struct ggtl_state *b, const struct ggtl_move *m)
 {
-	char *board = boarddata;
-	const char *move = movedata;
-	int tx, ty, flipped = 0;
+	int me = b->player;
 	int not_me = 3 - me;
-	int y = move[0];
-	int x = move[1];
+	int tx, ty, flipped = 0;
+	int x = m->x;
+	int y = m->y;
 
 	/* null or pass move */
-	if (x == -1 && y == -1) 
+	if (x == -1 && y == -1) {
+		b->player = 3 - me;
 		return 1;
+	}
 
 	if (x < 0 || x > 7 || y < 0 || y > 7) 
 		return 0;
 
 	/* slot must not already be occupied */
-	if (a(board, x, y) != 0)
+	if (b->b[x][y] != 0)
 		return 0;
 
 	/* left */
-	for (tx = x - 1; tx >= 0 && a(board, tx, y) == not_me; tx--)
+	for (tx = x - 1; tx >= 0 && b->b[tx][y] == not_me; tx--)
 		;
-	if (tx >= 0 && tx != x - 1 && a(board, tx, y) == me) {
+	if (tx >= 0 && tx != x - 1 && b->b[tx][y] == me) {
 		tx = x - 1;
-		while (tx >= 0 && a(board, tx, y) == not_me) {
-			a(board, tx, y) = me;
+		while (tx >= 0 && b->b[tx][y] == not_me) {
+			b->b[tx][y] = me;
 			tx--;
 		}
 		flipped++;
 	}
 
 	/* right */
-	for (tx = x + 1; tx < 8 && a(board, tx, y) == not_me; tx++)
+	for (tx = x + 1; tx < 8 && b->b[tx][y] == not_me; tx++)
 		;
-	if (tx < 8 && tx != x + 1 && a(board, tx, y) == me) {
+	if (tx < 8 && tx != x + 1 && b->b[tx][y] == me) {
 		tx = x + 1;
-		while (tx < 8 && a(board, tx, y) == not_me) {
-			a(board, tx, y) = me;
+		while (tx < 8 && b->b[tx][y] == not_me) {
+			b->b[tx][y] = me;
 			tx++;
 		}
 		flipped++;
 	}
 
 	/* up */
-	for (ty = y - 1; ty >= 0 && a(board, x, ty) == not_me; ty--)
+	for (ty = y - 1; ty >= 0 && b->b[x][ty] == not_me; ty--)
 		;
-	if (ty >= 0 && ty != y - 1 && a(board, x, ty) == me) {
+	if (ty >= 0 && ty != y - 1 && b->b[x][ty] == me) {
 		ty = y - 1;
-		while (ty >= 0 && a(board, x, ty) == not_me) {
-			a(board, x, ty) = me;
+		while (ty >= 0 && b->b[x][ty] == not_me) {
+			b->b[x][ty] = me;
 			ty--;
 		}
 		flipped++;
 	}
 	
 	/* down */
-	for (ty = y + 1; ty < 8 && a(board, x, ty) == not_me; ty++)
+	for (ty = y + 1; ty < 8 && b->b[x][ty] == not_me; ty++)
 		;
-	if (ty < 8 && ty != y + 1 && a(board, x, ty) == me) {
+	if (ty < 8 && ty != y + 1 && b->b[x][ty] == me) {
 		ty = y + 1;
-		while (ty < 8 && a(board, x, ty) == not_me) {
-			a(board, x, ty) = me;
+		while (ty < 8 && b->b[x][ty] == not_me) {
+			b->b[x][ty] = me;
 			ty++;
 		}
 		flipped++;
@@ -212,15 +212,15 @@ int make_move(void *boarddata, const void *movedata, int me)
 	/* up/left */
 	tx = x - 1;
 	ty = y - 1; 
-	while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
+	while (tx >= 0 && ty >= 0 && b->b[tx][ty] == not_me) {
 		tx--; ty--;
 	}
 	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
-			a(board, tx, ty) == me) {
+			b->b[tx][ty] == me) {
 		tx = x - 1;
 		ty = y - 1;
-		while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
+		while (tx >= 0 && ty >= 0 && b->b[tx][ty] == not_me) {
+			b->b[tx][ty] = me;
 			tx--; ty--;
 		}
 		flipped++;
@@ -229,15 +229,15 @@ int make_move(void *boarddata, const void *movedata, int me)
 	/* up/right */
 	tx = x - 1;
 	ty = y + 1; 
-	while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
+	while (tx >= 0 && ty < 8 && b->b[tx][ty] == not_me) {
 		tx--; ty++;
 	}
 	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
-			a(board, tx, ty) == me) {
+			b->b[tx][ty] == me) {
 		tx = x - 1;
 		ty = y + 1;
-		while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
+		while (tx >= 0 && ty < 8 && b->b[tx][ty] == not_me) {
+			b->b[tx][ty] = me;
 			tx--; ty++;
 		}
 		flipped++;
@@ -246,15 +246,15 @@ int make_move(void *boarddata, const void *movedata, int me)
 	/* down/right */
 	tx = x + 1;
 	ty = y + 1; 
-	while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
+	while (tx < 8 && ty < 8 && b->b[tx][ty] == not_me) {
 		tx++; ty++;
 	}
 	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
-			a(board, tx, ty) == me) {
+			b->b[tx][ty] == me) {
 		tx = x + 1;
 		ty = y + 1;
-		while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
+		while (tx < 8 && ty < 8 && b->b[tx][ty] == not_me) {
+			b->b[tx][ty] = me;
 			tx++; ty++;
 		}
 		flipped++;
@@ -263,15 +263,15 @@ int make_move(void *boarddata, const void *movedata, int me)
 	/* down/left */
 	tx = x + 1;
 	ty = y - 1;
-	while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
+	while (tx < 8 && ty >= 0 && b->b[tx][ty] == not_me) {
 		tx++; ty--;
 	}
 	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
-			a(board, tx, ty) == me) {
+			b->b[tx][ty] == me) {
 		tx = x + 1;
 		ty = y - 1;
-		while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
+		while (tx < 8 && ty >= 0 && b->b[tx][ty] == not_me) {
+			b->b[tx][ty] = me;
 			tx++; ty--;
 		}
 		flipped++;
@@ -280,7 +280,8 @@ int make_move(void *boarddata, const void *movedata, int me)
 	if (flipped == 0) 
 		return 0;
 
-	a(board, x, y) = me;
+	b->b[x][y] = me;
+	b->player = 3 - me;
 	return 1;
 }
 
@@ -289,77 +290,77 @@ int make_move(void *boarddata, const void *movedata, int me)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-int valid_move(const char *board, int x, int y, int me)
+int valid_move(const struct ggtl_state *b, int x, int y, int me)
 {
 	int tx, ty;
 	int not_me = 3 - me;
 
 	/* slot must not already be occupied */
-	if (a(board, x, y) != 0)
+	if (b->b[x][y] != 0)
 		return 0;
 
 	/* left */
-	for (tx = x - 1; tx >= 0 && a(board, tx, y) == not_me; tx--)
+	for (tx = x - 1; tx >= 0 && b->b[tx][y] == not_me; tx--)
 		;
-	if (tx >= 0 && tx != x - 1 && a(board, tx, y) == me) 
+	if (tx >= 0 && tx != x - 1 && b->b[tx][y] == me) 
 		return 1;
 
 	/* right */
-	for (tx = x + 1; tx < 8 && a(board, tx, y) == not_me; tx++)
+	for (tx = x + 1; tx < 8 && b->b[tx][y] == not_me; tx++)
 		;
-	if (tx < 8 && tx != x + 1 && a(board, tx, y) == me)
+	if (tx < 8 && tx != x + 1 && b->b[tx][y] == me)
 		return 1;
 
 	/* up */
-	for (ty = y - 1; ty >= 0 && a(board, x, ty) == not_me; ty--)
+	for (ty = y - 1; ty >= 0 && b->b[x][ty] == not_me; ty--)
 		;
-	if (ty >= 0 && ty != y - 1 && a(board, x, ty) == me) 
+	if (ty >= 0 && ty != y - 1 && b->b[x][ty] == me) 
 		return 1;
 	
 	/* down */
-	for (ty = y + 1; ty < 8 && a(board, x, ty) == not_me; ty++)
+	for (ty = y + 1; ty < 8 && b->b[x][ty] == not_me; ty++)
 		;
-	if (ty < 8 && ty != y + 1 && a(board, x, ty) == me) 
+	if (ty < 8 && ty != y + 1 && b->b[x][ty] == me) 
 		return 1;
 	
 	/* up/left */
 	tx = x - 1;
 	ty = y - 1; 
-	while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
+	while (tx >= 0 && ty >= 0 && b->b[tx][ty] == not_me) {
 		tx--; ty--;
 	}
 	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
-			a(board, tx, ty) == me)
+			b->b[tx][ty] == me)
 		return 1;
 
 	/* up/right */
 	tx = x - 1;
 	ty = y + 1; 
-	while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
+	while (tx >= 0 && ty < 8 && b->b[tx][ty] == not_me) {
 		tx--; ty++;
 	}
 	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
-			a(board, tx, ty) == me)
+			b->b[tx][ty] == me)
 		return 1;
 	
 	/* down/right */
 	tx = x + 1;
 	ty = y + 1; 
-	while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
+	while (tx < 8 && ty < 8 && b->b[tx][ty] == not_me) {
 		tx++; ty++;
 	}
 	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
-			a(board, tx, ty) == me) 
+			b->b[tx][ty] == me) 
 		return 1;
 
 	/* down/left */
 	tx = x + 1;
 	ty = y - 1;
-	while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
+	while (tx < 8 && ty >= 0 && b->b[tx][ty] == not_me) {
 		tx++; ty--;
 	}
 	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
-			a(board, tx, ty) == me)
+			b->b[tx][ty] == me)
 		return 1;
 
 	/* if we get here the move was illegal */
@@ -370,14 +371,13 @@ int valid_move(const char *board, int x, int y, int me)
 /* 
  * Count the number of pieces on the board for the given player
  */
-int count_pieces(const void *boarddata, int me)
+int count_pieces(const struct ggtl_state *b, int me)
 {
-	const char *board = boarddata;
 	int i, j, count = 0;
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			if (a(board, i, j) == me)
+			if (b->b[i][j] == me)
 				count++;
 		}
 	}
