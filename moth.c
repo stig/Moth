@@ -95,9 +95,11 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 		if (board) {
 			if (board->player == 1) {
 				ggtl_set(game, GGTL_PLY_TIMELIM, ply1);
+				ggtl_set(game, GGTL_PLY_LIM, ply1);
 			}
 			else {
 				ggtl_set(game, GGTL_PLY_TIMELIM, ply2);
+				ggtl_set(game, GGTL_PLY_LIM, ply2);
 			}
 		}
 
@@ -150,7 +152,11 @@ static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 			board = ggtl_move(game, &mv);
 			
 			if (!board) {
+#if cfg__moth_iterative
 				board = ggtl_alphabeta_iterative(game);
+#else
+				board = ggtl_alphabeta(game);
+#endif
 				if (board) {
 					printf("searched to ply %d\n",
 						ggtl_get(game, GGTL_PLY_LAST));
