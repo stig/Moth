@@ -1,6 +1,7 @@
 /* 
- * moth -- my/mini Othello
- * Copyright (C) 2003 Stig Brautaset
+ * moth -- an Othello game for console
+ * Copyright (C) 2003 Stig Brautaset, Dimitris Parapadakis and the
+ * University of Westminster, London, UK.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +33,7 @@ int end_of_game(const void *boarddata, int me);
 void find_moves(struct ggtl *game, const void *boarddata, int me);
 int evaluate(const void *boarddata, int me);
 
-static int valid_move(char *board, int x, int y, int me, int domove);
+static int valid_move(const char *board, int x, int y, int me);
 void display(const void *boarddata);
 void mainloop(struct ggtl *game, int ply1, int ply2);
 static int count_pieces(const void *boarddata, int me);
@@ -266,7 +267,7 @@ void find_moves(struct ggtl *game, const void *boarddata, int me)
 	cnt = 0;
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			if (valid_move(board, i, j, me, 0)) {
+			if (valid_move(board, i, j, me)) {
 				mv[0] = (char)j; 
 				mv[1] = (char)i; 
 				ggtl_add_move(game, mv);
@@ -289,9 +290,9 @@ int end_of_game(const void *boarddata, int me)
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			if (valid_move(board, i, j, me, 0))
+			if (valid_move(board, i, j, me))
 				return 0;
-			if (valid_move(board, i, j, not_me, 0))
+			if (valid_move(board, i, j, not_me))
 				return 0;
 		}
 	}
@@ -299,10 +300,16 @@ int end_of_game(const void *boarddata, int me)
 }
 
 
+/* 
+ * This function is heavily inspired by code in GNOME Iagno, which is
+ * Copyright (C) Ian Peters <ipeters@acm.org> 
+ */
 int make_move(void *boarddata, const void *movedata, int me)
 {
 	char *board = boarddata;
 	const char *move = movedata;
+	int tx, ty, flipped = 0;
+	int not_me = 3 - me;
 	int y = move[0];
 	int x = move[1];
 
@@ -313,7 +320,131 @@ int make_move(void *boarddata, const void *movedata, int me)
 	if (x < 0 || x > 7 || y < 0 || y > 7) 
 		return 0;
 
-	return valid_move(board, x, y, me, 1);
+	/* slot must not already be occupied */
+	if (a(board, x, y) != 0)
+		return 0;
+
+	/* left */
+	for (tx = x - 1; tx >= 0 && a(board, tx, y) == not_me; tx--)
+		;
+	if (tx >= 0 && tx != x - 1 && a(board, tx, y) == me) {
+		tx = x - 1;
+		while (tx >= 0 && a(board, tx, y) == not_me) {
+			a(board, tx, y) = me;
+			tx--;
+		}
+		flipped++;
+	}
+
+	/* right */
+	for (tx = x + 1; tx < 8 && a(board, tx, y) == not_me; tx++)
+		;
+	if (tx < 8 && tx != x + 1 && a(board, tx, y) == me) {
+		tx = x + 1;
+		while (tx < 8 && a(board, tx, y) == not_me) {
+			a(board, tx, y) = me;
+			tx++;
+		}
+		flipped++;
+	}
+
+	/* up */
+	for (ty = y - 1; ty >= 0 && a(board, x, ty) == not_me; ty--)
+		;
+	if (ty >= 0 && ty != y - 1 && a(board, x, ty) == me) {
+		ty = y - 1;
+		while (ty >= 0 && a(board, x, ty) == not_me) {
+			a(board, x, ty) = me;
+			ty--;
+		}
+		flipped++;
+	}
+	
+	/* down */
+	for (ty = y + 1; ty < 8 && a(board, x, ty) == not_me; ty++)
+		;
+	if (ty < 8 && ty != y + 1 && a(board, x, ty) == me) {
+		ty = y + 1;
+		while (ty < 8 && a(board, x, ty) == not_me) {
+			a(board, x, ty) = me;
+			ty++;
+		}
+		flipped++;
+	}
+	
+	/* up/left */
+	tx = x - 1;
+	ty = y - 1; 
+	while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
+		tx--; ty--;
+	}
+	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
+			a(board, tx, ty) == me) {
+		tx = x - 1;
+		ty = y - 1;
+		while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx--; ty--;
+		}
+		flipped++;
+	}
+
+	/* up/right */
+	tx = x - 1;
+	ty = y + 1; 
+	while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
+		tx--; ty++;
+	}
+	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
+			a(board, tx, ty) == me) {
+		tx = x - 1;
+		ty = y + 1;
+		while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx--; ty++;
+		}
+		flipped++;
+	}
+	
+	/* down/right */
+	tx = x + 1;
+	ty = y + 1; 
+	while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
+		tx++; ty++;
+	}
+	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
+			a(board, tx, ty) == me) {
+		tx = x + 1;
+		ty = y + 1;
+		while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx++; ty++;
+		}
+		flipped++;
+	}
+
+	/* down/left */
+	tx = x + 1;
+	ty = y - 1;
+	while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
+		tx++; ty--;
+	}
+	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
+			a(board, tx, ty) == me) {
+		tx = x + 1;
+		ty = y - 1;
+		while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
+			a(board, tx, ty) = me;
+			tx++; ty--;
+		}
+		flipped++;
+	}
+
+	if (flipped == 0) 
+		return 0;
+
+	a(board, x, y) = me;
+	return 1;
 }
 
 
@@ -336,10 +467,10 @@ static int count_pieces(const void *boarddata, int me)
  * This function is heavily inspired by code in GNOME Iagno, which is
  * Copyright (C) Ian Peters <ipeters@acm.org> 
  */
-static int valid_move(char *board, int x, int y, int me, int domove)
+static int valid_move(const char *board, int x, int y, int me)
 {
+	int tx, ty;
 	int not_me = 3 - me;
-	int tx, ty, flipped = 0;
 
 	/* slot must not already be occupied */
 	if (a(board, x, y) != 0)
@@ -348,62 +479,26 @@ static int valid_move(char *board, int x, int y, int me, int domove)
 	/* left */
 	for (tx = x - 1; tx >= 0 && a(board, tx, y) == not_me; tx--)
 		;
-	if (tx >= 0 && tx != x - 1 && a(board, tx, y) == me) {
-		if (domove == 0)
-			return 1;
-
-		tx = x - 1;
-		while (tx >= 0 && a(board, tx, y) == not_me) {
-			a(board, tx, y) = me;
-			tx--;
-		}
-		flipped++;
-	}
+	if (tx >= 0 && tx != x - 1 && a(board, tx, y) == me) 
+		return 1;
 
 	/* right */
 	for (tx = x + 1; tx < 8 && a(board, tx, y) == not_me; tx++)
 		;
-	if (tx < 8 && tx != x + 1 && a(board, tx, y) == me) {
-		if (domove == 0)
-			return 1;
-
-		tx = x + 1;
-		while (tx < 8 && a(board, tx, y) == not_me) {
-			a(board, tx, y) = me;
-			tx++;
-		}
-		flipped++;
-	}
+	if (tx < 8 && tx != x + 1 && a(board, tx, y) == me)
+		return 1;
 
 	/* up */
 	for (ty = y - 1; ty >= 0 && a(board, x, ty) == not_me; ty--)
 		;
-	if (ty >= 0 && ty != y - 1 && a(board, x, ty) == me) {
-		if (domove == 0)
-			return 1;
-
-		ty = y - 1;
-		while (ty >= 0 && a(board, x, ty) == not_me) {
-			a(board, x, ty) = me;
-			ty--;
-		}
-		flipped++;
-	}
+	if (ty >= 0 && ty != y - 1 && a(board, x, ty) == me) 
+		return 1;
 	
 	/* down */
 	for (ty = y + 1; ty < 8 && a(board, x, ty) == not_me; ty++)
 		;
-	if (ty < 8 && ty != y + 1 && a(board, x, ty) == me) {
-		if (domove == 0)
-			return 1;
-
-		ty = y + 1;
-		while (ty < 8 && a(board, x, ty) == not_me) {
-			a(board, x, ty) = me;
-			ty++;
-		}
-		flipped++;
-	}
+	if (ty < 8 && ty != y + 1 && a(board, x, ty) == me) 
+		return 1;
 	
 	/* up/left */
 	tx = x - 1;
@@ -412,18 +507,8 @@ static int valid_move(char *board, int x, int y, int me, int domove)
 		tx--; ty--;
 	}
 	if (tx >= 0 && ty >= 0 && tx != x - 1 && ty != y - 1 && 
-			a(board, tx, ty) == me) {
-		if (domove == 0)
-			return 1;
-
-		tx = x - 1;
-		ty = y - 1;
-		while (tx >= 0 && ty >= 0 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
-			tx--; ty--;
-		}
-		flipped++;
-	}
+			a(board, tx, ty) == me)
+		return 1;
 
 	/* up/right */
 	tx = x - 1;
@@ -432,18 +517,8 @@ static int valid_move(char *board, int x, int y, int me, int domove)
 		tx--; ty++;
 	}
 	if (tx >= 0 && ty < 8 && tx != x - 1 && ty != y + 1 && 
-			a(board, tx, ty) == me) {
-		if (domove == 0)
-			return 1;
-
-		tx = x - 1;
-		ty = y + 1;
-		while (tx >= 0 && ty < 8 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
-			tx--; ty++;
-		}
-		flipped++;
-	}
+			a(board, tx, ty) == me)
+		return 1;
 	
 	/* down/right */
 	tx = x + 1;
@@ -452,18 +527,8 @@ static int valid_move(char *board, int x, int y, int me, int domove)
 		tx++; ty++;
 	}
 	if (tx < 8 && ty < 8 && tx != x + 1 && ty != y + 1 && 
-			a(board, tx, ty) == me) {
-		if (domove == 0)
-			return 1;
-
-		tx = x + 1;
-		ty = y + 1;
-		while (tx < 8 && ty < 8 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
-			tx++; ty++;
-		}
-		flipped++;
-	}
+			a(board, tx, ty) == me) 
+		return 1;
 
 	/* down/left */
 	tx = x + 1;
@@ -472,24 +537,10 @@ static int valid_move(char *board, int x, int y, int me, int domove)
 		tx++; ty--;
 	}
 	if (tx < 8 && ty >= 0 && tx != x + 1 && ty != y - 1 && 
-			a(board, tx, ty) == me) {
-		if (domove == 0)
-			return 1;
+			a(board, tx, ty) == me)
+		return 1;
 
-		tx = x + 1;
-		ty = y - 1;
-		while (tx < 8 && ty >= 0 && a(board, tx, ty) == not_me) {
-			a(board, tx, ty) = me;
-			tx++; ty--;
-		}
-		flipped++;
-	}
-
-	if (domove == 0) 
-		return 0;
-
-	a(board, x, y) = me;
-	if (flipped == 0) 
-		return 0;
-	return 1;
+	/* if we get here the move was illegal */
+	return 0;
 }
+
