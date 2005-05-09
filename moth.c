@@ -2,9 +2,22 @@
  * moth -- my/mini Othello
  * Copyright (C) 2003 Stig Brautaset
  *
- * This software is released under the GNU GPL.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -77,6 +90,7 @@ int main(int argc, char **argv)
 		ply2 = atoi(argv[2]);
 	}
 
+	srand(time(NULL));
 	mainloop(game, ply1, ply2);
 
 	return 0;
@@ -165,7 +179,7 @@ void mainloop(struct ggtl *game, int ply1, int ply2)
 			board = ggtl_make_move(game, move);
 			
 			if (!board) {
-				board = ggtl_alphabeta_iterative(game, maxply);
+				board = ggtl_alphabeta(game, maxply);
 			}
 		}
 	} 
