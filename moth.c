@@ -18,14 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "ggtl/ggtl.h"
 #include "moth/moth-common.h"
-#include "config-options.h"
 
 
 
@@ -179,7 +176,6 @@ int main(int argc, char **argv)
 		ply2 = atoi(argv[2]);
 	}
 
-	srand(time(NULL));
 	game = mainloop(game, ply1, ply2);
 	ggtl_free(game);
 
