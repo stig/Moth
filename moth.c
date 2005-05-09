@@ -260,14 +260,15 @@ int evaluate(const void *boarddata, int me)
 void find_moves(struct ggtl *game, const void *boarddata, int me)
 {
 	const char *board = boarddata;
-	char mv[2], i, j, cnt;
+	char mv[2];
+	int i, j, cnt;
 	
 	cnt = 0;
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			if (valid_move(board, i, j, me, 0)) {
-				mv[0] = j; 
-				mv[1] = i; 
+				mv[0] = (char)j; 
+				mv[1] = (char)i; 
 				ggtl_add_move(game, mv);
 				cnt++;
 			}
