@@ -72,12 +72,17 @@ static void mykeyboard(unsigned char key, int x, int y)
 				puts("success");
 			else puts("failed");
 			break;
+#endif
 
 		case 'u':
 		case 'U':
 			(void)ggtl_undo(game);
 			break;
-#endif
+		case ' ':
+		case 'm':
+		case 'M':
+			ggtl_ai_move(game);
+			break;
 
 		case 'q': 
 		case 'Q':
@@ -101,7 +106,6 @@ static void mymouse(int button, int state, int x, int y)
 	int width = glutGet(GLUT_WINDOW_WIDTH);
 	int height = glutGet(GLUT_WINDOW_HEIGHT);
 	struct reversi_state *pos = ggtl_peek_state(game);
-	int ply = pos->player == 1 ? ply1 : ply2;
 
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
