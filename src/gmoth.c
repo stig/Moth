@@ -18,19 +18,82 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <GLUT/glut.h>
 
+#include <options/opt.h>
 #include <ggtl/reversi.h>
 
 #define XRES 400
 #define YRES 400
 
-
 struct ggtl *game;
-int size, ply1, ply2, fixed;
+enum { SIZE, LEVEL, TRACE, OPTCNT };
+int values[OPTCNT] = {8, 2, -2};
+
+void set(int what, int val)
+{
+        assert(what >= SIZE);
+        assert(what < OPTCNT);
+        values[what] = val;
+}
+
+int get(int what)
+{ 
+        assert(what >= SIZE);
+        assert(what < OPTCNT);
+        return values[what];
+}
+
+
+void getopts(int argc, char **argv)
+{
+        struct opt *opts;
+        int help, error, size, trace, level;
+        struct opt_defs options[] = {
+                {"help", "h", 0, "0", "Print a help message and exit"},
+                {"trace", "t", 1, "-2", "Print tracing information"},
+                {"size", "s", 1, "8", "Size of board (default: 8)"},
+                {"level", "l", 1, "2", "AI player level (default: 2)"},
+                OPT_DEFS_END
+        };
+
+        opts = opt_init(options);
+        if (!opts) {
+                fputs("Option parsing initialisation failure\n", stderr);
+                exit(EXIT_FAILURE);
+        }
+
+        if ((error = opt_parse(opts, &argc, argv, 0))) {
+                fprintf(stderr, "Failure parsing options: %s\n", 
+                                opt_strerror(error));
+                exit(EXIT_FAILURE);
+        }
+
+        error |= opt_val(opts, "help", "int", &help);
+        error |= opt_val(opts, "size", "int", &size);
+        error |= opt_val(opts, "trace", "int", &trace);
+        error |= opt_val(opts, "level", "int", &level);
+        if (error) {
+                fprintf(stderr, "Failure retrieving values. ");
+                fprintf(stderr, "Last error was: %s\n", opt_strerror(error));
+                exit(EXIT_FAILURE);
+        }
+        opt_free(opts);
+
+        if (help) {
+                opt_desc(options, 0);
+                exit(EXIT_SUCCESS);
+        }
+
+        size += size % 2 ? 1 : 0;
+        set(SIZE, size);
+        set(TRACE, trace);
+        set(LEVEL, level);
+      }
 
 
 /* 
@@ -38,7 +101,8 @@ int size, ply1, ply2, fixed;
  */
 static void mykeyboard(unsigned char key, int x, int y)
 {
-        ggtl_ai_level(game, 2);
+        ggtl_ai_trace(game, get(TRACE));
+        ggtl_ai_level(game, get(LEVEL));
 
         switch(key) {
                 case 'u':
@@ -78,6 +142,7 @@ static void mymouse(int button, int state, int x, int y)
                 void *moved = NULL;
                 if (button == GLUT_LEFT_BUTTON) {
                         struct reversi_move *mv;
+                        int size = get(SIZE);
 
                         mv = reversi_move_new(
                           x / (width / size), 
@@ -123,6 +188,7 @@ static void drawdisc(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
 static void drawgrid(GLdouble width, GLdouble height)
 {
         int i;
+        int size = get(SIZE);
         GLdouble x_step = width / size;
         GLdouble y_step = height / size;
 
@@ -144,6 +210,7 @@ static void drawgrid(GLdouble width, GLdouble height)
  */
 static void drawstate(struct reversi_state *board, GLdouble width, GLdouble height)
 {
+        int size = get(SIZE);
         GLdouble x_step = width / (GLdouble)size;
         GLdouble y_step = height / (GLdouble)size;
         int i, j, c;
@@ -220,17 +287,15 @@ int main(int argc, char **argv)
         glutDisplayFunc(mydisplay);
         glutMouseFunc(mymouse);
 
-        getopts(argc, argv, &size, &debug, &fixed, &ply1, &ply2);
+        getopts(argc, argv);
 
-        size += size % 2 ? 1 : 0;
-        pos = reversi_state_new(size);
+        pos = reversi_state_new(get(SIZE));
         game = reversi_init(ggtl_new(), pos);
 
         if (!game) {
                 puts("sorry -- NO GAME FOR YOU!");
                 return EXIT_FAILURE;
         }
-        ggtl_ai_trace(game, debug);
 
         glutMainLoop();
         return 0;
