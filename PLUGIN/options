@@ -1,7 +1,3 @@
-binary	have-glut	yes
-	Whether to build the graphical frontend (requires glut).
-	The default is yes.
-
 binary	fixeddepth	no
 	Don't use iterative deepening, but search to fixed depth instead.
 	Default is no.
