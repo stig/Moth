@@ -28,7 +28,7 @@
 /* 
  * Draw a game position on screen.
  */
-void display(const void *boarddata)
+static void display(const void *boarddata)
 {
 	const char *board = boarddata;
 	int i, j, c;
@@ -56,7 +56,7 @@ void display(const void *boarddata)
 /* 
  * This function actually plays the game.
  */
-struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
+static struct ggtl *mainloop(struct ggtl *game, int ply1, int ply2)
 {	
 	char move[128] = {0};
 	const void *board;

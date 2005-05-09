@@ -35,7 +35,7 @@ int ply1, ply2;
 /* 
  * Handle keyboard requensts.
  */
-void mykeyboard(unsigned char key, int x, int y)
+static void mykeyboard(unsigned char key, int x, int y)
 {
 	struct ggtl *tmp;
 	char filename[] = "gmoth.savegame";
@@ -89,7 +89,7 @@ void mykeyboard(unsigned char key, int x, int y)
 /* 
  * Handle mouse requests
  */
-void mymouse(int button, int state, int x, int y)
+static void mymouse(int button, int state, int x, int y)
 {
 	char move[2];
 	int width = glutGet(GLUT_WINDOW_WIDTH);
@@ -115,7 +115,7 @@ void mymouse(int button, int state, int x, int y)
 /*
  * Draw a disc in the quadrant (and with the colour) specified
  */
-void drawdisc(int x1, int y1, int x2, int y2, float col)
+static void drawdisc(int x1, int y1, int x2, int y2, float col)
 {
 	int i;
 	float rx = (x2 - x1) / 2.0;
@@ -137,7 +137,7 @@ void drawdisc(int x1, int y1, int x2, int y2, float col)
 /* 
  * Draw the grid
  */
-void drawgrid(int width, int height)
+static void drawgrid(int width, int height)
 {
 	int i;
 	int x_step = width / 8;
@@ -159,7 +159,7 @@ void drawgrid(int width, int height)
  * Draw a state; wizz through an array and draw discs in the correct
  * colour when needed.
  */
-void drawstate(const char *board, int width, int height)
+static void drawstate(const char *board, int width, int height)
 {
 	int i, j, c;
 	int x_step = width / 8;
@@ -178,7 +178,8 @@ void drawstate(const char *board, int width, int height)
 	}
 }
 
-void gameover(const char *board)
+
+static void gameover(const char *board)
 {
 	int score;
 
@@ -198,7 +199,8 @@ void gameover(const char *board)
 	exit(EXIT_SUCCESS);
 }
 
-void mydisplay(void)
+
+static void mydisplay(void)
 {
 	const char *board = ggtl_peek_state(game);
 	int width = glutGet(GLUT_WINDOW_WIDTH);
