@@ -38,31 +38,31 @@ int ply1, ply2, fixed;
  */
 static void mykeyboard(unsigned char key, int x, int y)
 {
-	ggtl_ai_level(game, 2);
+        ggtl_ai_level(game, 2);
 
-	switch(key) {
-		case 'u':
-		case 'U':
-			(void)ggtl_undo(game);
-			break;
+        switch(key) {
+                case 'u':
+                case 'U':
+                        (void)ggtl_undo(game);
+                        break;
 
-		case ' ':
-		case 'm':
-		case 'M':
-			ggtl_ai_move(game);
-			break;
+                case ' ':
+                case 'm':
+                case 'M':
+                        ggtl_ai_move(game);
+                        break;
 
-		case 'q': 
-		case 'Q':
-			ggtl_free(game);
-			exit(EXIT_SUCCESS);
-			break;
+                case 'q': 
+                case 'Q':
+                        ggtl_free(game);
+                        exit(EXIT_SUCCESS);
+                        break;
 
-		default:
-			break;
-	}
+                default:
+                        break;
+        }
 
-	glutPostRedisplay();
+        glutPostRedisplay();
 }
 
 
@@ -71,28 +71,28 @@ static void mykeyboard(unsigned char key, int x, int y)
  */
 static void mymouse(int button, int state, int x, int y)
 {
-	int width = glutGet(GLUT_WINDOW_WIDTH);
-	int height = glutGet(GLUT_WINDOW_HEIGHT);
-	void *moved = NULL;
+        int width = glutGet(GLUT_WINDOW_WIDTH);
+        int height = glutGet(GLUT_WINDOW_HEIGHT);
+        void *moved = NULL;
 
-	if (state == GLUT_DOWN) {
-		if (button == GLUT_LEFT_BUTTON) {
-			struct reversi_move *mv;
+        if (state == GLUT_DOWN) {
+                if (button == GLUT_LEFT_BUTTON) {
+                        struct reversi_move *mv;
 
                         mv = reversi_move_new(
                           x / (width / 8), 
                           7 - y / (height / 8)
                         );
                         moved = ggtl_move(game, mv);
-		}
-		else if (button == GLUT_RIGHT_BUTTON) {
-			moved = ggtl_ai_move(game);
-		}
+                }
+                else if (button == GLUT_RIGHT_BUTTON) {
+                        moved = ggtl_ai_move(game);
+                }
 
-		if (moved) { 
-			glutPostRedisplay();
-		}
-	}
+                if (moved) { 
+                        glutPostRedisplay();
+                }
+        }
 }
 
 
@@ -101,19 +101,19 @@ static void mymouse(int button, int state, int x, int y)
  */
 static void drawdisc(int x1, int y1, int x2, int y2)
 {
-	int i;
-	int rx = (x2 - x1) / 2;
-	int ry = (y2 - y1) / 2;
-	int x = x1 + rx;
-	int y = y1 + ry;
+        int i;
+        int rx = (x2 - x1) / 2;
+        int ry = (y2 - y1) / 2;
+        int x = x1 + rx;
+        int y = y1 + ry;
 
-	glBegin(GL_POLYGON);
-	for (i = 0; i < 360; i++) {
-		GLfloat xt = x + rx * cos(i / 57.0);
-		GLfloat xy = y + ry * sin(i / 57.0);
-		glVertex2f(xt, xy);
-	}
-	glEnd();
+        glBegin(GL_POLYGON);
+        for (i = 0; i < 360; i++) {
+                GLfloat xt = x + rx * cos(i / 57.0);
+                GLfloat xy = y + ry * sin(i / 57.0);
+                glVertex2f(xt, xy);
+        }
+        glEnd();
 }
 
 
@@ -122,19 +122,19 @@ static void drawdisc(int x1, int y1, int x2, int y2)
  */
 static void drawgrid(int width, int height)
 {
-	int i;
-	GLfloat x_step = width / 8.0;
-	GLfloat y_step = height / 8.0;
+        int i;
+        GLfloat x_step = width / 8.0;
+        GLfloat y_step = height / 8.0;
 
-	glColor3f(1.0, 1.0, 1.0);
-	glBegin(GL_LINES);
-	for (i = 0; i < 9; i++) {
-		glVertex2f(0.0, y_step * i);
-		glVertex2f((GLfloat)width, y_step * i);
-		glVertex2f(x_step * i, 0.0);
-		glVertex2f(x_step * i, (GLfloat)height);
-	}
-	glEnd();
+        glColor3f(1.0, 1.0, 1.0);
+        glBegin(GL_LINES);
+        for (i = 0; i < 9; i++) {
+                glVertex2f(0.0, y_step * i);
+                glVertex2f((GLfloat)width, y_step * i);
+                glVertex2f(x_step * i, 0.0);
+                glVertex2f(x_step * i, (GLfloat)height);
+        }
+        glEnd();
 }
 
 
@@ -144,72 +144,77 @@ static void drawgrid(int width, int height)
  */
 static void drawstate(struct reversi_state *board, int width, int height)
 {
-	int i, j, c;
-	int x_step = width / 8;
-	int y_step = height / 8;
+        int i, j, c;
+        int x_step = width / 8;
+        int y_step = height / 8;
 
-	for (i = 0; i < 8; i++) {
-		for (j = 0; j < 8; j++) {
-			c = board->board[i][j];
-			if (c) {
-				if (c == 1) glColor3f(1.0, 1.0, 1.0);
-				else glColor3f(0.0, 0.0, 0.0);
+        for (i = 0; i < 8; i++) {
+                for (j = 0; j < 8; j++) {
+                        c = board->board[i][j];
+                        if (c) {
+                                if (c == 1) glColor3f(1.0, 1.0, 1.0);
+                                else glColor3f(0.0, 0.0, 0.0);
 
-				drawdisc(x_step * i, y_step * j, x_step * (i+1), y_step * (j+1));
-			}
-		}
-	}
+                                drawdisc(
+                                        x_step * i,
+                                        y_step * j,
+                                        x_step * (i+1), 
+                                        y_step * (j+1)
+                                );
+                        }
+                }
+        }
 }
 
 
 static void gameover(struct reversi_state *board)
 {
-	int score = ggtl_eval(game);
-	int player = board->player;
+        int score = ggtl_eval(game);
+        int player = board->player;
 
-	if (!score) {
-		puts("The game ended in a draw\n\n");
-	}
-	else {
-		printf("Player %d %s\n\n", player, 
-			score > 0 ?  "won" : "lost");
-	}
+        if (!score) {
+                puts("The game ended in a draw\n\n");
+        }
+        else {
+                printf("Player %d %s\n\n", player, 
+                        score > 0 ?  "won" : "lost");
+        }
 
-	ggtl_free(game);
-	exit(EXIT_SUCCESS);
+        ggtl_free(game);
+        exit(EXIT_SUCCESS);
 }
 
 
 static void mydisplay(void)
 {
-	int ply;
-	struct reversi_state *board = ggtl_peek_state(game);
-	int width = glutGet(GLUT_WINDOW_WIDTH);
-	int height = glutGet(GLUT_WINDOW_HEIGHT);
+        int ply;
+        struct reversi_state *board = ggtl_peek_state(game);
+        int width = glutGet(GLUT_WINDOW_WIDTH);
+        int height = glutGet(GLUT_WINDOW_HEIGHT);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-	glClearColor(0.0, 0.0, 1.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
+        glClearColor(0.0, 0.0, 1.0, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
-	reversi_state_draw(board);
-	if (ggtl_game_over(game)) 
-		gameover(board);
+        reversi_state_draw(board);
+        if (ggtl_game_over(game)) 
+                gameover(board);
 
-	drawgrid(width, height);
-	drawstate(board, width, height);
+        drawgrid(width, height);
+        drawstate(board, width, height);
 
-	glutSwapBuffers();
-	glFlush();
+        glutSwapBuffers();
+        glFlush();
 }
 
 
 int main(int argc, char **argv)
 {
-	struct reversi_state *pos;
-	int debug;
+        struct reversi_state *pos;
+        int debug;
 
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -220,18 +225,18 @@ int main(int argc, char **argv)
         glutDisplayFunc(mydisplay);
         glutMouseFunc(mymouse);
 
-	getopts(argc, argv, &debug, &fixed, &ply1, &ply2);
+        getopts(argc, argv, &debug, &fixed, &ply1, &ply2);
 
         pos = reversi_state_new(8);
-	game = reversi_init(ggtl_new(), pos);
+        game = reversi_init(ggtl_new(), pos);
 
-	if (!game) {
-		puts("sorry -- NO GAME FOR YOU!");
-		return EXIT_FAILURE;
-	}
-	ggtl_ai_trace(game, debug);
+        if (!game) {
+                puts("sorry -- NO GAME FOR YOU!");
+                return EXIT_FAILURE;
+        }
+        ggtl_ai_trace(game, debug);
 
         glutMainLoop();
-	return 0;
+        return 0;
 }
 
