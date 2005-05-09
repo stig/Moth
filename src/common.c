@@ -48,10 +48,12 @@ void getopts(int argc, char **argv, int *debug, int *fixed, int *level1, int *le
 		exit(EXIT_SUCCESS);
 	}
 
+#if 0
 	if (!*fixed) {
 		*level1 *= 10;
 		*level2 *= 10;
 	}
+#endif
 }
 
 /* arch-tag: 8b7fe550-f212-4b6e-8a60-113f4b548a20

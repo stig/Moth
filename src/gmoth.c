@@ -196,12 +196,15 @@ static void drawstate(struct reversi_state *board, int width, int height)
 static void gameover(struct reversi_state *board)
 {
 	int score = ggtl_eval(game);
+	int player = board->player;
+
+	reversi_state_draw(board);
 
 	if (score > 0) {
-		printf("Player 1 won, with a margin of %d\n\n", score);
+		printf("Player %d won, with a margin of %d\n\n", player, score);
 	}
 	else if (score < 0) {
-		printf("Player 2 won, with a margin of %d\n\n", -score);
+		printf("Player %d won, with a margin of %d\n\n", player, -score);
 	}
 	else {
 		puts("The game ended in a draw\n\n");
@@ -228,8 +231,11 @@ static void mydisplay(void)
 	if (ggtl_game_over(game)) 
 		gameover(board);
 
+	ply = 4;
+	board = ggtl_peek_state(game);
 	if (board)
-		ply = board->player == 1 ? ply1 : ply2;
+		ply = board->player == 1 ? 5 : 7;
+	ggtl_ai_level(game, ply);
 
 	drawgrid(width, height);
 	drawstate(board, width, height);
