@@ -38,46 +38,14 @@ int ply1, ply2, fixed;
  */
 static void mykeyboard(unsigned char key, int x, int y)
 {
-#if 0
-	struct ggtl *tmp;
-	char filename[] = "gmoth.savegame";
-	int ply = ggtl_get(game, GGTL_PLY_LAST);
-
-	if (ply < 1) 
-		ply = 4;
-#endif
+	ggtl_ai_level(game, 2);
 
 	switch(key) {
-#if 0
-		case 'l':
-		case 'L':
-			if ((tmp = resume(filename))) {
-				printf("loaded game from `%s'.", filename);
-				ggtl_free(game);
-				game = tmp;
-			}
-			else {
-				printf("failed loading game from `%s'.", filename);
-			}
-			break;
-
-		case 'r':
-		case 'R':
-                        printf("minimax value: %d\n\n", ggtl_rate_move(game, ply));
-			break;
-
-		case 's':
-		case 'S':
-			if (!save(filename, game))
-				puts("success");
-			else puts("failed");
-			break;
-#endif
-
 		case 'u':
 		case 'U':
 			(void)ggtl_undo(game);
 			break;
+
 		case ' ':
 		case 'm':
 		case 'M':
@@ -230,12 +198,7 @@ static void mydisplay(void)
 
 	if (ggtl_game_over(game)) 
 		gameover(board);
-
-	ply = 4;
-	board = ggtl_peek_state(game);
-	if (board)
-		ply = board->player == 1 ? 5 : 7;
-	ggtl_ai_level(game, ply);
+  /* reversi_state_draw(board); */
 
 	drawgrid(width, height);
 	drawstate(board, width, height);
