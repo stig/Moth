@@ -38,20 +38,20 @@
 #define YRES 400
 
 struct ggtl *game;
-enum { SIZE, LEVEL, TRACE, OPTCNT };
-int values[OPTCNT] = {8, 2, -2};
+enum { MOTH_SIZE, MOTH_LEVEL, MOTH_TRACE, MOTH_OPTCNT };
+int values[MOTH_OPTCNT] = {8, 2, -2};
 
 void set(int what, int val)
 {
-        assert(what >= SIZE);
-        assert(what < OPTCNT);
+        assert(what >= MOTH_SIZE);
+        assert(what < MOTH_OPTCNT);
         values[what] = val;
 }
 
 int get(int what)
 { 
-        assert(what >= SIZE);
-        assert(what < OPTCNT);
+        assert(what >= MOTH_SIZE);
+        assert(what < MOTH_OPTCNT);
         return values[what];
 }
 
@@ -97,9 +97,9 @@ void getopts(int argc, char **argv)
         }
 
         size += size % 2 ? 1 : 0;
-        set(SIZE, size);
-        set(TRACE, trace);
-        set(LEVEL, level);
+        set(MOTH_SIZE, size);
+        set(MOTH_TRACE, trace);
+        set(MOTH_LEVEL, level);
       }
 
 
@@ -108,27 +108,27 @@ void getopts(int argc, char **argv)
  */
 static void mykeyboard(unsigned char key, int x, int y)
 {
-        int level = get(LEVEL);
-        int trace = get(TRACE);
+        int level = get(MOTH_LEVEL);
+        int trace = get(MOTH_TRACE);
 
-        ggtl_ai_trace(game, trace);
-        ggtl_ai_level(game, level);
+        ggtl_set(game, TRACE, trace);
+        ggtl_set(game, PLY, level);
 
         switch(key) {
                 case 'l':
-                        set(LEVEL, level + 1);
+                        set(MOTH_LEVEL, level + 1);
                         break;
 
                 case 'L':
-                        if (level > 1) { set(LEVEL, level - 1); }
+                        if (level > 1) { set(MOTH_LEVEL, level - 1); }
                         break;
 
                 case 't':
-                        set(TRACE, trace + 1);
+                        set(MOTH_TRACE, trace + 1);
                         break;
 
                 case 'T':
-                        if (trace > -2) { set(TRACE, trace - 1); }
+                        if (trace > -2) { set(MOTH_TRACE, trace - 1); }
                         break;
 
                 case 'u':
@@ -164,7 +164,7 @@ static void mymouse(int button, int state, int x, int y)
                 void *moved = NULL;
                 if (button == GLUT_LEFT_BUTTON) {
                         struct reversi_move *mv;
-                        int size = get(SIZE);
+                        int size = get(MOTH_SIZE);
 
                         mv = reversi_move_new(
                           x / (width / size), 
@@ -210,7 +210,7 @@ static void drawdisc(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
 static void drawgrid(GLdouble width, GLdouble height)
 {
         int i;
-        int size = get(SIZE);
+        int size = get(MOTH_SIZE);
         GLdouble x_step = width / size;
         GLdouble y_step = height / size;
 
@@ -232,7 +232,7 @@ static void drawgrid(GLdouble width, GLdouble height)
  */
 static void drawstate(struct reversi_state *board, GLdouble width, GLdouble height)
 {
-        int size = get(SIZE);
+        int size = get(MOTH_SIZE);
         GLdouble x_step = width / (GLdouble)size;
         GLdouble y_step = height / (GLdouble)size;
         int i, j, c;
@@ -311,7 +311,7 @@ int main(int argc, char **argv)
 
         getopts(argc, argv);
 
-        pos = reversi_state_new(get(SIZE));
+        pos = reversi_state_new(get(MOTH_SIZE));
         game = reversi_init(ggtl_new(), pos);
 
         if (!game) {
