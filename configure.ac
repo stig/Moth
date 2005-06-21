@@ -6,7 +6,7 @@ AC_INIT(goth, 1.2.0, stig@brautaset.org)
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 
 AC_CONFIG_SRCDIR([goth.c])
 AC_CONFIG_HEADER([config/config.h])
