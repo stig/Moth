@@ -29,6 +29,8 @@
 #include <GL/glut.h>
 #elif HAVE_GLUT_GLUT_H
 #include <GLUT/glut.h>  /* Mac OS-X */
+#else
+#error no glut header!
 #endif
 
 #include <options/opt.h>
