@@ -2,13 +2,13 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(moth, 1.2.0, stig@brautaset.org)
+AC_INIT(goth, 1.2.0, stig@brautaset.org)
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
 AM_INIT_AUTOMAKE
 
-AC_CONFIG_SRCDIR([gmoth.c])
+AC_CONFIG_SRCDIR([goth.c])
 AC_CONFIG_HEADER([config/config.h])
 
 # Checks for programs.

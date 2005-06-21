@@ -1,4 +1,4 @@
-bin_PROGRAMS	= gmoth
-gmoth_SOURCES	= gmoth.c 
+bin_PROGRAMS	= goth
+goth_SOURCES	= goth.c 
 
-EXTRA_DIST 		= ChangeLog THANKS 
+EXTRA_DIST 	= THANKS 
